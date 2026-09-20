@@ -308,8 +308,13 @@ function renderResults(attended, total, writesGrit, result) {
   statusBanner.className = 'status-banner ' + (canReach70 ? 'success' : 'danger');
   if (canReach70) {
     statusIconWrap.innerHTML = '✓';
-    statusTitle.textContent = '✓ You can reach 70%';
-    statusDesc.textContent = 'Attend your remaining sessions to hit 70%. (This is an estimate; actual attendance may vary with backend updates or extra classes).';
+    if (currentAttendance >= CONFIG.minimumAttendance) {
+      statusTitle.textContent = '✓ Attendance Safe (≥ 70%)';
+      statusDesc.textContent = 'You are already at or above 70%. Keep attending your remaining sessions to maintain or further improve your standing!';
+    } else {
+      statusTitle.textContent = '✓ You can reach 70%';
+      statusDesc.textContent = 'You can reach the 70% requirement by attending your remaining sessions. Stay consistent to secure your attendance!';
+    }
   } else {
     statusIconWrap.innerHTML = 'ℹ';
     statusTitle.textContent = 'Below 70% (Estimated)';
