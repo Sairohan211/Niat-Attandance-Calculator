@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NIAT x CDU Attandance Calculator</title>
-  <meta name="description" content="Calculate your university attendance for the remaining 14 working days including GRIT exam days. Fast, simple, and accurate.">
+  <meta name="description" content="Calculate your university attendance for the remaining working days including GRIT exam days up to the October 8th freeze. Fast, simple, and accurate.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -46,15 +46,15 @@
           </div>
           <div class="fact-item">
             <span class="fact-label">Remaining Days</span>
-            <span class="fact-value">14 Days</span>
+            <span class="fact-value" id="fact-remaining-days">14 Days</span>
           </div>
           <div class="fact-item">
             <span class="fact-label">Remaining Sessions</span>
-            <span class="fact-value">112 Total</span>
+            <span class="fact-value" id="fact-remaining-sessions">112 Total</span>
           </div>
           <div class="fact-item">
             <span class="fact-label">GRIT Days</span>
-            <span class="fact-value">4 Days</span>
+            <span class="fact-value" id="fact-grit-days">4 Days</span>
           </div>
         </div>
 
@@ -73,7 +73,7 @@
       <div class="card form-card">
         <div class="form-header">
           <h2 class="section-heading">Attendance Details</h2>
-          <p class="section-subtext">Enter your session stats from My NIAT to calculate your outlook.</p>
+          <p class="section-subtext">Enter your session stats from MyNIAT app to calculate your outlook.</p>
         </div>
 
         <form id="attendance-form" novalidate>
@@ -96,7 +96,7 @@
               >
               <span class="input-unit">sessions</span>
             </div>
-            <p class="helper-text">Enter your current attended sessions shown in My NIAT.</p>
+            <p class="helper-text">Enter your current attended sessions shown in MyNIAT app.</p>
             <div class="error-msg" id="error-attended"></div>
           </div>
 
@@ -113,13 +113,13 @@
                 class="text-input" 
                 placeholder="e.g. 160" 
                 min="1" 
-                step="1"
+                step="1" 
                 required
                 autocomplete="off"
               >
               <span class="input-unit">sessions</span>
             </div>
-            <p class="helper-text">Enter the current total sessions shown in My NIAT.</p>
+            <p class="helper-text">Enter the current total sessions shown in MyNIAT app.</p>
             <div class="error-msg" id="error-total"></div>
           </div>
 
@@ -140,7 +140,7 @@
                 <div class="card-content">
                   <div class="card-title">I'm writing GRIT</div>
                   <div class="card-desc">All 8 sessions count on GRIT days.</div>
-                  <div class="card-tag">32 / 32 GRIT sessions</div>
+                  <div class="card-tag" id="grit-card-yes-tag">32 / 32 GRIT sessions</div>
                 </div>
               </div>
 
@@ -153,7 +153,7 @@
                 <div class="card-content">
                   <div class="card-title">I'm not writing GRIT</div>
                   <div class="card-desc">Only 5 of the 8 sessions count on GRIT days.</div>
-                  <div class="card-tag tag-warning">20 / 32 GRIT sessions</div>
+                  <div class="card-tag tag-warning" id="grit-card-no-tag">20 / 32 GRIT sessions</div>
                 </div>
               </div>
             </div>
@@ -271,11 +271,11 @@
         <div class="card detail-card">
           <div class="detail-header">
             <span class="detail-badge">FUTURE CAPACITY</span>
-            <h4 class="detail-title">Remaining 14 Working Days</h4>
+            <h4 class="detail-title" id="res-future-title">Remaining 14 Working Days</h4>
           </div>
           <div class="future-days-pill-row">
-            <span class="badge-mini">10 Normal Days</span>
-            <span class="badge-mini badge-grit">4 GRIT Days</span>
+            <span class="badge-mini" id="res-future-normal-badge">10 Normal Days</span>
+            <span class="badge-mini badge-grit" id="res-future-grit-badge">4 GRIT Days</span>
           </div>
           <div class="detail-metric">
             <div class="detail-ratio" id="res-future-ratio">-- / 112</div>
@@ -339,7 +339,9 @@
     <footer class="app-footer">
       <p>NIAT x CDU Attandance Calculator · Client-side Mathematical Attendance Utility</p>
       <p class="footer-sub">All calculations run securely and locally in your browser.</p>
-      <p class="footer-tagline">Made with ❤️ & attendance panic 🤧 from Hall-1</p>
+      <p class="footer-tagline">
+        <span class="tagline-highlight">Made with ❤️ &amp; attendance panic 🤧 from <strong>Hall-1</strong></span>
+      </p>
     </footer>
   </div>
 

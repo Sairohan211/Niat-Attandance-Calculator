@@ -1,47 +1,132 @@
 /**
  * NIAT x CDU Attandance Calculator
  * Client-side mathematical attendance utility
+ * Dynamic schedule engine tracking up to October 8th, 2026 freeze date
  */
 
-// 1. Fixed Configuration
-const CONFIG = {
-  remainingWorkingDays: 14,
-  gritDays: 4,
-  normalDays: 10,
-  sessionsPerDay: 8,
-  gritSessionsIfNotWriting: 5,
-  minimumAttendance: 70
-};
+// 1. Master Schedule Calendar (Sep 21, 2026 to Oct 8, 2026)
+const SCHEDULE_CALENDAR = [
+  { date: '2026-09-21', type: 'normal', sessions: 8, gritNo: 8 },
+  { date: '2026-09-22', type: 'normal', sessions: 8, gritNo: 8 },
+  { date: '2026-09-23', type: 'grit', sessions: 8, gritNo: 5 },
+  { date: '2026-09-24', type: 'normal', sessions: 8, gritNo: 8 },
+  { date: '2026-09-25', type: 'holiday', sessions: 0, gritNo: 0 },
+  { date: '2026-09-26', type: 'grit', sessions: 8, gritNo: 5 },
+  { date: '2026-09-27', type: 'holiday', sessions: 0, gritNo: 0 },
+  { date: '2026-09-28', type: 'normal', sessions: 8, gritNo: 8 },
+  { date: '2026-09-29', type: 'normal', sessions: 8, gritNo: 8 },
+  { date: '2026-09-30', type: 'grit', sessions: 8, gritNo: 5 },
+  { date: '2026-10-01', type: 'normal', sessions: 8, gritNo: 8 },
+  { date: '2026-10-02', type: 'holiday', sessions: 0, gritNo: 0 },
+  { date: '2026-10-03', type: 'grit', sessions: 8, gritNo: 5 },
+  { date: '2026-10-04', type: 'holiday', sessions: 0, gritNo: 0 },
+  { date: '2026-10-05', type: 'normal', sessions: 8, gritNo: 8 },
+  { date: '2026-10-06', type: 'normal', sessions: 8, gritNo: 8 },
+  { date: '2026-10-07', type: 'normal', sessions: 8, gritNo: 8 },
+  { date: '2026-10-08', type: 'normal', sessions: 8, gritNo: 8 }
+];
+
+/**
+ * Automatically compute current schedule constants from local date & time
+ * Transition happens every day after 4:00 PM (16:00) when that day's sessions conclude.
+ */
+function getActiveScheduleConfig() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const localDate = `${year}-${month}-${day}`;
+
+  // Check if current local time is past 4:00 PM (16:00:00)
+  const isAfter4PM = (now.getHours() > 16) || (now.getHours() === 16 && (now.getMinutes() > 0 || now.getSeconds() >= 0));
+
+  // Determine remaining days from schedule calendar:
+  // - Before Sep 21: full baseline schedule (all 14 working days / 112 sessions)
+  // - On/after Sep 21:
+  //   - Before 4:00 PM: today's sessions are pending/in-progress -> include today (date >= today)
+  //   - After 4:00 PM: today's sessions concluded -> count from tomorrow (date > today)
+  const remainingDaysList = SCHEDULE_CALENDAR.filter(schedDay => {
+    if (localDate < '2026-09-21') {
+      return true;
+    }
+    if (isAfter4PM) {
+      return schedDay.date > localDate;
+    } else {
+      return schedDay.date >= localDate;
+    }
+  });
+  
+  let normalDays = 0;
+  let gritDays = 0;
+  let futureTotalSessions = 0;
+  let futureMaxGritYes = 0;
+  let futureMaxGritNo = 0;
+
+  remainingDaysList.forEach(item => {
+    if (item.type === 'normal') {
+      normalDays++;
+      futureTotalSessions += item.sessions;
+      futureMaxGritYes += item.sessions;
+      futureMaxGritNo += item.sessions;
+    } else if (item.type === 'grit') {
+      gritDays++;
+      futureTotalSessions += item.sessions;
+      futureMaxGritYes += item.sessions;
+      futureMaxGritNo += item.gritNo;
+    }
+  });
+
+  const remainingWorkingDays = normalDays + gritDays;
+
+  return {
+    localDate,
+    isAfter4PM,
+    remainingWorkingDays,
+    normalDays,
+    gritDays,
+    sessionsPerDay: 8,
+    gritSessionsIfNotWriting: 5,
+    futureTotalSessions,
+    futureMaxGritYes,
+    futureMaxGritNo,
+    gritTotalSessions: gritDays * 8,
+    gritAttendedSessionsNo: gritDays * 5,
+    minimumAttendance: 70
+  };
+}
+
+// Global active configuration computed automatically
+let CONFIG = getActiveScheduleConfig();
 
 // 2. Core Mathematical Calculation Function
 function calculateAttendance(attendedSessions, totalSessions, writesGrit) {
-  const { remainingWorkingDays, gritDays, normalDays, sessionsPerDay, gritSessionsIfNotWriting, minimumAttendance } = CONFIG;
+  const {
+    remainingWorkingDays,
+    futureTotalSessions,
+    futureMaxGritYes,
+    futureMaxGritNo,
+    minimumAttendance
+  } = CONFIG;
 
   // Current attendance %
-  const currentAttendance = (attendedSessions / totalSessions) * 100;
-
-  // Total sessions that will be added in remaining 14 days (14 x 8 = 112)
-  const futureTotalSessions = remainingWorkingDays * sessionsPerDay;
+  const currentAttendance = totalSessions > 0 ? (attendedSessions / totalSessions) * 100 : 0;
 
   // Maximum future attended sessions depending on GRIT selection
-  let futureMaximumAttended;
-  if (writesGrit) {
-    futureMaximumAttended = (normalDays * sessionsPerDay) + (gritDays * sessionsPerDay); // 80 + 32 = 112
-  } else {
-    futureMaximumAttended = (normalDays * sessionsPerDay) + (gritDays * gritSessionsIfNotWriting); // 80 + 20 = 100
-  }
+  const futureMaximumAttended = writesGrit ? futureMaxGritYes : futureMaxGritNo;
 
-  // Final totals after 14 days
+  // Final totals after remaining days up to freeze date
   const finalTotalSessions = totalSessions + futureTotalSessions;
   const maximumFinalAttended = attendedSessions + futureMaximumAttended;
-  const maximumPossibleAttendance = (maximumFinalAttended / finalTotalSessions) * 100;
+  const maximumPossibleAttendance = finalTotalSessions > 0
+    ? (maximumFinalAttended / finalTotalSessions) * 100
+    : currentAttendance;
 
   // Check 70% threshold
   const canReach70 = maximumPossibleAttendance >= minimumAttendance;
 
   // Maximum missable sessions if >= 70% can be achieved
   let maximumMissableSessions = 0;
-  if (canReach70) {
+  if (canReach70 && futureTotalSessions > 0) {
     maximumMissableSessions = Math.floor(
       maximumFinalAttended - (0.70 * finalTotalSessions)
     );
@@ -66,6 +151,13 @@ const landingView = document.getElementById('landing-view');
 const calculatorView = document.getElementById('calculator-view');
 const resultsView = document.getElementById('results-view');
 const headerSubtitle = document.getElementById('header-subtitle');
+
+const factRemainingDays = document.getElementById('fact-remaining-days');
+const factRemainingSessions = document.getElementById('fact-remaining-sessions');
+const factGritDays = document.getElementById('fact-grit-days');
+
+const gritCardYesTag = document.getElementById('grit-card-yes-tag');
+const gritCardNoTag = document.getElementById('grit-card-no-tag');
 
 const btnStartCalc = document.getElementById('btn-start-calc');
 const attendanceForm = document.getElementById('attendance-form');
@@ -102,6 +194,9 @@ const resCurrentPct = document.getElementById('res-current-pct');
 const resCurrentAttendedCount = document.getElementById('res-current-attended-count');
 const resCurrentTotalCount = document.getElementById('res-current-total-count');
 
+const resFutureTitle = document.getElementById('res-future-title');
+const resFutureNormalBadge = document.getElementById('res-future-normal-badge');
+const resFutureGritBadge = document.getElementById('res-future-grit-badge');
 const resFutureRatio = document.getElementById('res-future-ratio');
 const resFutureLabel = document.getElementById('res-future-label');
 const resFutureFootnote = document.getElementById('res-future-footnote');
@@ -113,31 +208,48 @@ const gritExplainText = document.getElementById('grit-explain-text');
 const gritCalcBox = document.getElementById('grit-calc-box');
 const btnRecalculate = document.getElementById('btn-recalculate');
 
-// 4. State
+// State
 let selectedGritOption = null; // 'yes' | 'no' | null
 
-// 5. Navigation helper with browser history support
-// Initialize base state
+/**
+ * Apply dynamic constants to initial landing and form elements
+ */
+function applyScheduleData() {
+  CONFIG = getActiveScheduleConfig();
+
+  if (factRemainingDays) factRemainingDays.textContent = `${CONFIG.remainingWorkingDays} Days`;
+  if (factRemainingSessions) factRemainingSessions.textContent = `${CONFIG.futureTotalSessions} Total`;
+  if (factGritDays) factGritDays.textContent = `${CONFIG.gritDays} Days`;
+
+  if (gritCardYesTag) {
+    gritCardYesTag.textContent = `${CONFIG.gritTotalSessions} / ${CONFIG.gritTotalSessions} GRIT sessions`;
+  }
+  if (gritCardNoTag) {
+    gritCardNoTag.textContent = `${CONFIG.gritAttendedSessionsNo} / ${CONFIG.gritTotalSessions} GRIT sessions`;
+  }
+}
+
+// 4. Navigation helper with browser history support
 try {
   history.replaceState({ view: 'landing' }, '', window.location.pathname);
 } catch (e) {
-  // Safe fallback if history manipulation is restricted
+  // Safe fallback
 }
 
 function showView(viewId, pushHistory = true) {
   [landingView, calculatorView, resultsView].forEach(view => {
-    view.classList.remove('active');
+    if (view) view.classList.remove('active');
   });
 
   if (viewId === 'landing') {
-    landingView.classList.add('active');
-    headerSubtitle.textContent = 'Calculate your attendance for the remaining working days.';
+    if (landingView) landingView.classList.add('active');
+    if (headerSubtitle) headerSubtitle.textContent = 'Calculate your attendance for the remaining working days.';
   } else if (viewId === 'calculator') {
-    calculatorView.classList.add('active');
-    headerSubtitle.textContent = 'Enter your attendance details below.';
+    if (calculatorView) calculatorView.classList.add('active');
+    if (headerSubtitle) headerSubtitle.textContent = 'Enter your attendance details below.';
   } else if (viewId === 'results') {
-    resultsView.classList.add('active');
-    headerSubtitle.textContent = 'Your remaining 14-day attendance forecast.';
+    if (resultsView) resultsView.classList.add('active');
+    if (headerSubtitle) headerSubtitle.textContent = `Your remaining ${CONFIG.remainingWorkingDays}-day attendance forecast.`;
   }
 
   if (pushHistory && window.history && window.history.pushState) {
@@ -147,13 +259,12 @@ function showView(viewId, pushHistory = true) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Handle hardware/browser back and forward buttons
 window.addEventListener('popstate', (event) => {
   const targetView = (event.state && event.state.view) || 'landing';
   showView(targetView, false);
 });
 
-// 6. GRIT Single-Selection Handler
+// 5. GRIT Single-Selection Handler
 function selectGritOption(option) {
   selectedGritOption = option;
   clearError(errorGrit);
@@ -171,8 +282,8 @@ function selectGritOption(option) {
   }
 }
 
-// Attach event listeners to GRIT cards
 [cardGritYes, cardGritNo].forEach(card => {
+  if (!card) return;
   card.addEventListener('click', () => {
     selectGritOption(card.dataset.value);
   });
@@ -185,8 +296,9 @@ function selectGritOption(option) {
   });
 });
 
-// 7. Validation Helpers
+// 6. Validation Helpers
 function showError(errorElement, message, inputWrapper = null) {
+  if (!errorElement) return;
   errorElement.textContent = message;
   errorElement.classList.add('visible');
   if (inputWrapper) {
@@ -195,6 +307,7 @@ function showError(errorElement, message, inputWrapper = null) {
 }
 
 function clearError(errorElement, inputWrapper = null) {
+  if (!errorElement) return;
   errorElement.textContent = '';
   errorElement.classList.remove('visible');
   if (inputWrapper) {
@@ -202,89 +315,96 @@ function clearError(errorElement, inputWrapper = null) {
   }
 }
 
-// Input clearing on type
-inputAttended.addEventListener('input', () => {
-  clearError(errorAttended, groupAttended);
-  clearError(errorTotal, groupTotal);
-});
+if (inputAttended) {
+  inputAttended.addEventListener('input', () => {
+    clearError(errorAttended, groupAttended);
+    clearError(errorTotal, groupTotal);
+  });
+}
 
-inputTotal.addEventListener('input', () => {
-  clearError(errorTotal, groupTotal);
-});
+if (inputTotal) {
+  inputTotal.addEventListener('input', () => {
+    clearError(errorTotal, groupTotal);
+  });
+}
 
-// Prevent trackpad / mouse wheel from changing input values
-[inputAttended, inputTotal].forEach(input => {
-  input.addEventListener('wheel', (e) => {
+if (inputAttended && inputTotal) {
+  [inputAttended, inputTotal].forEach(input => {
+    input.addEventListener('wheel', (e) => {
+      e.preventDefault();
+    }, { passive: false });
+  });
+}
+
+// 7. Form Submission & Validation
+if (attendanceForm) {
+  attendanceForm.addEventListener('submit', (e) => {
     e.preventDefault();
-  }, { passive: false });
-});
+    let isValid = true;
 
-// 8. Form Submission & Validation
-attendanceForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  let isValid = true;
+    clearError(errorAttended, groupAttended);
+    clearError(errorTotal, groupTotal);
+    clearError(errorGrit);
 
-  // Clear previous errors
-  clearError(errorAttended, groupAttended);
-  clearError(errorTotal, groupTotal);
-  clearError(errorGrit);
+    const rawAttended = inputAttended.value.trim();
+    const rawTotal = inputTotal.value.trim();
 
-  const rawAttended = inputAttended.value.trim();
-  const rawTotal = inputTotal.value.trim();
+    // Validate attended sessions
+    if (rawAttended === '') {
+      showError(errorAttended, 'Please enter your attended sessions.', groupAttended);
+      isValid = false;
+    } else {
+      const attendedNum = Number(rawAttended);
+      if (!Number.isInteger(attendedNum) || attendedNum < 0) {
+        showError(errorAttended, 'Attended sessions must be a positive whole number (0 or more).', groupAttended);
+        isValid = false;
+      }
+    }
 
-  // Validate attended sessions
-  if (rawAttended === '') {
-    showError(errorAttended, 'Please enter your attended sessions.', groupAttended);
-    isValid = false;
-  } else {
-    const attendedNum = Number(rawAttended);
-    if (!Number.isInteger(attendedNum) || attendedNum < 0) {
-      showError(errorAttended, 'Attended sessions must be a positive whole number (0 or more).', groupAttended);
+    // Validate total sessions
+    if (rawTotal === '') {
+      showError(errorTotal, 'Please enter total sessions conducted.', groupTotal);
+      isValid = false;
+    } else {
+      const totalNum = Number(rawTotal);
+      if (!Number.isInteger(totalNum) || totalNum <= 0) {
+        showError(errorTotal, 'Total sessions must be a positive whole number greater than 0.', groupTotal);
+        isValid = false;
+      }
+    }
+
+    // Cross-field validation: attended <= total
+    if (isValid) {
+      const attendedNum = Number(rawAttended);
+      const totalNum = Number(rawTotal);
+      if (attendedNum > totalNum) {
+        showError(errorAttended, 'Attended sessions cannot be greater than total sessions.', groupAttended);
+        isValid = false;
+      }
+    }
+
+    // Validate GRIT selection
+    if (!selectedGritOption) {
+      showError(errorGrit, 'Please select whether you are writing GRIT.');
       isValid = false;
     }
-  }
 
-  // Validate total sessions
-  if (rawTotal === '') {
-    showError(errorTotal, 'Please enter total sessions conducted.', groupTotal);
-    isValid = false;
-  } else {
-    const totalNum = Number(rawTotal);
-    if (!Number.isInteger(totalNum) || totalNum <= 0) {
-      showError(errorTotal, 'Total sessions must be a positive whole number greater than 0.', groupTotal);
-      isValid = false;
-    }
-  }
+    if (!isValid) return;
 
-  // Cross-field validation: attended <= total
-  if (isValid) {
-    const attendedNum = Number(rawAttended);
-    const totalNum = Number(rawTotal);
-    if (attendedNum > totalNum) {
-      showError(errorAttended, 'Attended sessions cannot be greater than total sessions.', groupAttended);
-      isValid = false;
-    }
-  }
+    // Refresh dynamic schedule state based on current date
+    CONFIG = getActiveScheduleConfig();
 
-  // Validate GRIT selection
-  if (!selectedGritOption) {
-    showError(errorGrit, 'Please select whether you are writing GRIT.');
-    isValid = false;
-  }
+    const attended = parseInt(rawAttended, 10);
+    const total = parseInt(rawTotal, 10);
+    const writesGrit = selectedGritOption === 'yes';
 
-  if (!isValid) return;
+    const result = calculateAttendance(attended, total, writesGrit);
+    renderResults(attended, total, writesGrit, result);
+    showView('results');
+  });
+}
 
-  // Perform calculation
-  const attended = parseInt(rawAttended, 10);
-  const total = parseInt(rawTotal, 10);
-  const writesGrit = selectedGritOption === 'yes';
-
-  const result = calculateAttendance(attended, total, writesGrit);
-  renderResults(attended, total, writesGrit, result);
-  showView('results');
-});
-
-// 9. Render Results Function
+// 8. Render Results Function
 function renderResults(attended, total, writesGrit, result) {
   const {
     currentAttendance,
@@ -297,95 +417,118 @@ function renderResults(attended, total, writesGrit, result) {
     maximumMissableSessions
   } = result;
 
+  const { remainingWorkingDays, normalDays, gritDays, gritTotalSessions, gritAttendedSessionsNo } = CONFIG;
+
   // Format percentages
   const currentPctStr = currentAttendance.toFixed(2) + '%';
   const maxPctStr = maximumPossibleAttendance.toFixed(2) + '%';
 
   // 1. Hero Percentage
-  resMaxPct.textContent = maxPctStr;
+  if (resMaxPct) resMaxPct.textContent = maxPctStr;
 
   // 2. 70% Status Banner
-  statusBanner.className = 'status-banner ' + (canReach70 ? 'success' : 'danger');
+  if (statusBanner) {
+    statusBanner.className = 'status-banner ' + (canReach70 ? 'success' : 'danger');
+  }
   if (canReach70) {
-    statusIconWrap.innerHTML = '✓';
+    if (statusIconWrap) statusIconWrap.innerHTML = '✓';
     if (currentAttendance >= CONFIG.minimumAttendance) {
-      statusTitle.textContent = '✓ Attendance Safe (≥ 70%)';
-      statusDesc.textContent = 'You are already at or above 70%. Keep attending your remaining sessions to maintain or further improve your standing!';
+      if (statusTitle) statusTitle.textContent = '✓ Attendance Safe (≥ 70%)';
+      if (statusDesc) statusDesc.textContent = 'You are already at or above 70%. Keep attending your remaining sessions to maintain or further improve your standing!';
     } else {
-      statusTitle.textContent = '✓ You can reach 70%';
-      statusDesc.textContent = 'You can reach the 70% requirement by attending your remaining sessions. Stay consistent to secure your attendance!';
+      if (statusTitle) statusTitle.textContent = '✓ You can reach 70%';
+      if (statusDesc) statusDesc.textContent = 'You can reach the 70% requirement by attending your remaining sessions. Stay consistent to secure your attendance!';
     }
   } else {
-    statusIconWrap.innerHTML = 'ℹ';
-    statusTitle.textContent = 'Below 70% (Estimated)';
-    statusDesc.textContent = 'You may still fall below 70%. Don’t worry — this is only an estimate, and your actual attendance may vary based on backend updates, extra activities, or other attendance adjustments.';
+    if (statusIconWrap) statusIconWrap.innerHTML = 'ℹ';
+    if (statusTitle) statusTitle.textContent = 'Below 70% (Estimated)';
+    if (statusDesc) statusDesc.textContent = 'You may still fall below 70%. Don’t worry — this is only an estimate, and your actual attendance may vary based on backend updates, extra activities, or other attendance adjustments.';
   }
 
   // 3. Comparison & Progress Bar
-  compCurrentPct.textContent = currentPctStr;
-  compMaxPct.textContent = maxPctStr;
+  if (compCurrentPct) compCurrentPct.textContent = currentPctStr;
+  if (compMaxPct) compMaxPct.textContent = maxPctStr;
 
-  // Visual Progress Bar clamping between 0 and 100
   const clampedCurrent = Math.min(Math.max(currentAttendance, 0), 100);
   const clampedMax = Math.min(Math.max(maximumPossibleAttendance, 0), 100);
 
-  progressBarCurrent.style.width = clampedCurrent + '%';
-  progressBarPotential.style.width = clampedMax + '%';
+  if (progressBarCurrent) progressBarCurrent.style.width = clampedCurrent + '%';
+  if (progressBarPotential) progressBarPotential.style.width = clampedMax + '%';
 
-  // Missable Sessions Section (Conditional)
-  if (canReach70) {
-    cardMissable.style.display = 'flex';
-    if (maximumMissableSessions > 0) {
-      cardMissable.className = 'card missable-card';
-      missableTitle.textContent = `You can still miss up to ${maximumMissableSessions} session${maximumMissableSessions === 1 ? '' : 's'}`;
-      missableDesc.textContent = 'Based on maintaining at least 70% attendance.';
+  // Missable Sessions Section
+  if (cardMissable) {
+    if (canReach70 && futureTotalSessions > 0) {
+      cardMissable.style.display = 'flex';
+      if (maximumMissableSessions > 0) {
+        cardMissable.className = 'card missable-card';
+        if (missableTitle) missableTitle.textContent = `You can still miss up to ${maximumMissableSessions} session${maximumMissableSessions === 1 ? '' : 's'}`;
+        if (missableDesc) missableDesc.textContent = 'Based on maintaining at least 70% attendance.';
+      } else {
+        cardMissable.className = 'card missable-card cannot-miss';
+        if (missableTitle) missableTitle.textContent = 'You cannot afford to miss any more sessions';
+        if (missableDesc) missableDesc.textContent = 'You must attend all remaining sessions to ensure you meet the 70% requirement.';
+      }
     } else {
-      cardMissable.className = 'card missable-card cannot-miss';
-      missableTitle.textContent = 'You cannot afford to miss any more sessions';
-      missableDesc.textContent = 'You must attend all remaining sessions to ensure you meet the 70% requirement.';
+      cardMissable.style.display = 'none';
     }
-  } else {
-    cardMissable.style.display = 'none';
   }
 
   // 4. Current Attendance Details Card
-  resCurrentRatio.textContent = `${attended} / ${total}`;
-  resCurrentPct.textContent = currentPctStr;
-  resCurrentAttendedCount.textContent = attended;
-  resCurrentTotalCount.textContent = total;
+  if (resCurrentRatio) resCurrentRatio.textContent = `${attended} / ${total}`;
+  if (resCurrentPct) resCurrentPct.textContent = currentPctStr;
+  if (resCurrentAttendedCount) resCurrentAttendedCount.textContent = attended;
+  if (resCurrentTotalCount) resCurrentTotalCount.textContent = total;
 
   // 5. Future Attendance Details Card
-  resFutureRatio.textContent = `${futureMaximumAttended} / ${futureTotalSessions}`;
-  if (writesGrit) {
-    resFutureFootnote.textContent = 'Writing GRIT: All 8 sessions count on all 4 GRIT days (112 / 112 sessions possible).';
-  } else {
-    resFutureFootnote.textContent = 'Not writing GRIT: Only 5 of 8 sessions count on 4 GRIT days (100 / 112 sessions possible).';
+  if (resFutureTitle) resFutureTitle.textContent = `Remaining ${remainingWorkingDays} Working Days`;
+  if (resFutureNormalBadge) resFutureNormalBadge.textContent = `${normalDays} Normal Day${normalDays === 1 ? '' : 's'}`;
+  if (resFutureGritBadge) resFutureGritBadge.textContent = `${gritDays} GRIT Day${gritDays === 1 ? '' : 's'}`;
+  if (resFutureRatio) resFutureRatio.textContent = `${futureMaximumAttended} / ${futureTotalSessions}`;
+  
+  if (resFutureFootnote) {
+    if (writesGrit) {
+      resFutureFootnote.textContent = `Writing GRIT: All 8 sessions count on all ${gritDays} GRIT days (${futureMaximumAttended} / ${futureTotalSessions} sessions possible).`;
+    } else {
+      resFutureFootnote.textContent = `Not writing GRIT: Only 5 of 8 sessions count on ${gritDays} GRIT days (${futureMaximumAttended} / ${futureTotalSessions} sessions possible).`;
+    }
   }
 
   // 6. Final Projected Attendance Card
-  resFinalRatio.textContent = `${maximumFinalAttended} / ${finalTotalSessions}`;
-  resFinalPct.textContent = maxPctStr;
+  if (resFinalRatio) resFinalRatio.textContent = `${maximumFinalAttended} / ${finalTotalSessions}`;
+  if (resFinalPct) resFinalPct.textContent = maxPctStr;
 
   // 7. GRIT Explanation Card
-  if (writesGrit) {
-    gritExplainText.textContent = 'You are writing GRIT, so all 8 sessions count on each GRIT day.';
-    gritCalcBox.innerHTML = `<code>4 GRIT days × 8 sessions\n= 32 possible attended sessions</code>`;
-  } else {
-    gritExplainText.textContent = 'You are not writing GRIT, so only 5 of the 8 sessions count as attended on each GRIT day.';
-    gritCalcBox.innerHTML = `<code>4 GRIT days × 5 sessions\n= 20 possible attended sessions</code>`;
+  if (gritExplainText && gritCalcBox) {
+    if (gritDays === 0) {
+      gritExplainText.textContent = 'All remaining days until October 8th are normal classes (no further GRIT days remaining).';
+      gritCalcBox.innerHTML = `<code>0 remaining GRIT days\nAll future sessions follow normal 8-session schedule.</code>`;
+    } else if (writesGrit) {
+      gritExplainText.textContent = `You are writing GRIT, so all 8 sessions count on each remaining GRIT day.`;
+      gritCalcBox.innerHTML = `<code>${gritDays} GRIT day${gritDays === 1 ? '' : 's'} × 8 sessions\n= ${gritTotalSessions} possible attended sessions</code>`;
+    } else {
+      gritExplainText.textContent = `You are not writing GRIT, so only 5 of the 8 sessions count as attended on each remaining GRIT day.`;
+      gritCalcBox.innerHTML = `<code>${gritDays} GRIT day${gritDays === 1 ? '' : 's'} × 5 sessions\n= ${gritAttendedSessionsNo} possible attended sessions (${gritTotalSessions - gritAttendedSessionsNo} sessions deduction)</code>`;
+    }
   }
 }
 
-// 10. Event Listeners for view changes
-btnStartCalc.addEventListener('click', () => {
-  showView('calculator');
-  inputAttended.focus();
-});
-
-btnRecalculate.addEventListener('click', () => {
-  if (window.history && window.history.length > 1) {
-    history.back();
-  } else {
+// 9. Event Listeners for view changes
+if (btnStartCalc) {
+  btnStartCalc.addEventListener('click', () => {
     showView('calculator');
-  }
-});
+    inputAttended?.focus();
+  });
+}
+
+if (btnRecalculate) {
+  btnRecalculate.addEventListener('click', () => {
+    if (window.history && window.history.length > 1) {
+      history.back();
+    } else {
+      showView('calculator');
+    }
+  });
+}
+
+// Initialize on page load
+applyScheduleData();
