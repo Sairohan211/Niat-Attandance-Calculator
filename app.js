@@ -116,8 +116,15 @@ const btnRecalculate = document.getElementById('btn-recalculate');
 // 4. State
 let selectedGritOption = null; // 'yes' | 'no' | null
 
-// 5. Navigation helper
-function showView(viewId) {
+// 5. Navigation helper with browser history support
+// Initialize base state
+try {
+  history.replaceState({ view: 'landing' }, '', window.location.pathname);
+} catch (e) {
+  // Safe fallback if history manipulation is restricted
+}
+
+function showView(viewId, pushHistory = true) {
   [landingView, calculatorView, resultsView].forEach(view => {
     view.classList.remove('active');
   });
@@ -133,8 +140,18 @@ function showView(viewId) {
     headerSubtitle.textContent = 'Your remaining 14-day attendance forecast.';
   }
 
+  if (pushHistory && window.history && window.history.pushState) {
+    history.pushState({ view: viewId }, '', '#' + viewId);
+  }
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// Handle hardware/browser back and forward buttons
+window.addEventListener('popstate', (event) => {
+  const targetView = (event.state && event.state.view) || 'landing';
+  showView(targetView, false);
+});
 
 // 6. GRIT Single-Selection Handler
 function selectGritOption(option) {
@@ -361,5 +378,9 @@ btnStartCalc.addEventListener('click', () => {
 });
 
 btnRecalculate.addEventListener('click', () => {
-  showView('calculator');
+  if (window.history && window.history.length > 1) {
+    history.back();
+  } else {
+    showView('calculator');
+  }
 });
