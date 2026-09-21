@@ -8,7 +8,20 @@ A fast, client-side, mobile-first web application designed for university studen
 - **Baseline Reference**: September 20th, 2026
 - **Sessions Per Working Day**: 8 sessions
 - **Target Benchmark**: 70.00% minimum attendance
-- **Dynamic Daily EOD Engine**: Automatically computes remaining working days, normal days, GRIT days, and session capacity as each day passes.
+- **Dynamic Real-Time Session Engine**: Automatically decrements remaining sessions in real time as each college period concludes (8:30 AM to 4:00 PM).
+
+### Daily Session Timetable (8:30 AM – 4:00 PM)
+
+| Slot | Time Period | Duration | Decrement Milestone |
+| :--- | :--- | :--- | :--- |
+| **Session 1** | 08:30 AM – 09:20 AM | 50 mins | Completes at 09:20 AM (1 done) |
+| **Session 2** | 09:20 AM – 10:25 AM *(incl. break)* | 65 mins | Completes at 10:25 AM (2 done) |
+| **Session 3** | 10:25 AM – 11:00 AM | 35 mins | Completes at 11:00 AM (3 done) |
+| **Session 4** | 11:00 AM – 11:50 AM | 50 mins | Completes at 11:50 AM (4 done) |
+| **Session 5** | 11:50 AM – 12:40 PM | 50 mins | Completes at 12:40 PM (5 done) |
+| **Session 6** | 12:40 PM – 01:30 PM | 50 mins | Completes at 01:30 PM (6 done) |
+| **Session 7** | 01:30 PM – 02:20 PM | 50 mins | Completes at 02:20 PM (7 done) |
+| **Session 8** | 02:20 PM – 04:00 PM | 100 mins | Completes at 04:00 PM (8 done / EOD) |
 
 ### Schedule Calendar (Sep 21 – Oct 8, 2026)
 

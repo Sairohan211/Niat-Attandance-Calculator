@@ -14,8 +14,13 @@
   <div class="app-container">
     <!-- Header -->
     <header class="app-header">
-      <div class="badge-pill">
-        <span class="status-dot"></span> Unofficial Attendance Tool
+      <div class="header-badges">
+        <div class="badge-pill">
+          <span class="status-dot"></span> Unofficial Attendance Tool
+        </div>
+        <div class="badge-pill live-pill" id="live-session-pill">
+          <span class="status-dot live-dot"></span> <span id="live-session-text">Live: Tracking Sessions</span>
+        </div>
       </div>
       <h1 class="main-title">NIAT x CDU Attandance Calculator</h1>
       <p class="subtitle" id="header-subtitle">Calculate your attendance for the remaining working days.</p>
@@ -36,7 +41,7 @@
         
         <h2 class="section-heading">Plan Your Attendance With Confidence</h2>
         <p class="landing-description">
-          Check your current attendance, account for GRIT days, and see your maximum possible attendance.
+          Check your current attendance, account for GRIT days, and see your maximum possible attendance. Sessions decrement dynamically as each period completes (8:30 AM – 4:00 PM).
         </p>
 
         <div class="key-facts-grid">

@@ -27,60 +27,155 @@ const SCHEDULE_CALENDAR = [
 ];
 
 /**
- * Automatically compute current schedule constants from local date & time
- * Transition happens every day after 4:00 PM (16:00) when that day's sessions conclude.
+ * Daily Session Timetable
+ * College Hours: 8:30 AM to 4:00 PM
+ * Start times: 8:30, 9:20, 10:25, 11:00, 11:50, 12:40, 1:30, 2:20, 3:10 -> Ends at 4:00 PM
  */
-function getActiveScheduleConfig() {
-  const now = new Date();
+const DAILY_TIMETABLE = [
+  { id: 1, label: 'Session 1', start: '08:30', end: '09:20', startMin: 8 * 60 + 30, endMin: 9 * 60 + 20 },
+  { id: 2, label: 'Session 2', start: '09:20', end: '10:25', startMin: 9 * 60 + 20, endMin: 10 * 60 + 25 },
+  { id: 3, label: 'Session 3', start: '10:25', end: '11:00', startMin: 10 * 60 + 25, endMin: 11 * 60 + 0 },
+  { id: 4, label: 'Session 4', start: '11:00', end: '11:50', startMin: 11 * 60 + 0, endMin: 11 * 60 + 50 },
+  { id: 5, label: 'Session 5', start: '11:50', end: '12:40', startMin: 11 * 60 + 50, endMin: 12 * 60 + 40 },
+  { id: 6, label: 'Session 6', start: '12:40', end: '13:30', startMin: 12 * 60 + 40, endMin: 13 * 60 + 30 },
+  { id: 7, label: 'Session 7', start: '13:30', end: '14:20', startMin: 13 * 60 + 30, endMin: 14 * 60 + 20 },
+  { id: 8, label: 'Session 8', start: '14:20', end: '16:00', startMin: 14 * 60 + 20, endMin: 16 * 60 + 0 }
+];
+
+/**
+ * Determine live session progression for today
+ * Returns completed count (0-8) and current period status
+ */
+function getTodaySessionProgress(now = new Date()) {
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  let completedSessions = 0;
+  let currentStatusText = '';
+  let activeSessionName = null;
+
+  if (currentMinutes < 8 * 60 + 30) {
+    // Before college starts (Before 8:30 AM)
+    completedSessions = 0;
+    currentStatusText = 'Starts today at 8:30 AM';
+  } else if (currentMinutes >= 16 * 60) {
+    // After college ends (4:00 PM and later)
+    completedSessions = 8;
+    currentStatusText = 'All sessions completed today (4:00 PM EOD)';
+  } else {
+    // During college hours
+    for (let i = 0; i < DAILY_TIMETABLE.length; i++) {
+      const slot = DAILY_TIMETABLE[i];
+      if (currentMinutes >= slot.endMin) {
+        completedSessions = i + 1;
+      } else if (currentMinutes >= slot.startMin && currentMinutes < slot.endMin) {
+        activeSessionName = slot.label;
+        currentStatusText = `${slot.label} in progress (${slot.start} - ${slot.end.replace('16:00', '4:00 PM').replace('13:30', '1:30 PM').replace('14:20', '2:20 PM')})`;
+        break;
+      }
+    }
+
+    if (!activeSessionName && completedSessions < 8) {
+      currentStatusText = `${completedSessions} session${completedSessions === 1 ? '' : 's'} completed today`;
+    }
+  }
+
+  return {
+    completedSessions: Math.min(completedSessions, 8),
+    currentStatusText,
+    activeSessionName,
+    isAfter4PM: currentMinutes >= 16 * 60
+  };
+}
+
+/**
+ * Automatically compute current schedule constants from local date & time
+ * Sessions decrement dynamically in real-time as each period completes.
+ */
+function getActiveScheduleConfig(now = new Date()) {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   const localDate = `${year}-${month}-${day}`;
 
-  // Check if current local time is past 4:00 PM (16:00:00)
-  const isAfter4PM = (now.getHours() > 16) || (now.getHours() === 16 && (now.getMinutes() > 0 || now.getSeconds() >= 0));
+  const { completedSessions, currentStatusText, isAfter4PM } = getTodaySessionProgress(now);
 
-  // Determine remaining days from schedule calendar:
-  // - Before Sep 21: full baseline schedule (all 14 working days / 112 sessions)
-  // - On/after Sep 21:
-  //   - Before 4:00 PM: today's sessions are pending/in-progress -> include today (date >= today)
-  //   - After 4:00 PM: today's sessions concluded -> count from tomorrow (date > today)
-  const remainingDaysList = SCHEDULE_CALENDAR.filter(schedDay => {
-    if (localDate < '2026-09-21') {
-      return true;
-    }
-    if (isAfter4PM) {
-      return schedDay.date > localDate;
-    } else {
-      return schedDay.date >= localDate;
-    }
-  });
-  
   let normalDays = 0;
   let gritDays = 0;
   let futureTotalSessions = 0;
   let futureMaxGritYes = 0;
   let futureMaxGritNo = 0;
+  let todayRemainingSessions = 0;
+  let isTodayWorkingDay = false;
+  let todayType = 'none';
 
-  remainingDaysList.forEach(item => {
-    if (item.type === 'normal') {
+  SCHEDULE_CALENDAR.forEach(schedDay => {
+    // Past days (before today) are already concluded
+    if (schedDay.date < localDate) {
+      return;
+    }
+
+    // Today's dynamic handling
+    if (schedDay.date === localDate) {
+      todayType = schedDay.type;
+      if (schedDay.type === 'normal') {
+        isTodayWorkingDay = true;
+        const remainingToday = Math.max(0, schedDay.sessions - completedSessions);
+        todayRemainingSessions = remainingToday;
+        if (remainingToday > 0) {
+          normalDays++;
+          futureTotalSessions += remainingToday;
+          futureMaxGritYes += remainingToday;
+          futureMaxGritNo += remainingToday;
+        }
+      } else if (schedDay.type === 'grit') {
+        isTodayWorkingDay = true;
+        const remainingToday = Math.max(0, schedDay.sessions - completedSessions);
+        todayRemainingSessions = remainingToday;
+        if (remainingToday > 0) {
+          gritDays++;
+          futureTotalSessions += remainingToday;
+          futureMaxGritYes += remainingToday;
+          // For not writing GRIT: max attendable is 5
+          const remainingGritNoToday = Math.max(0, Math.min(remainingToday, 5 - completedSessions));
+          futureMaxGritNo += remainingGritNoToday;
+        }
+      }
+      return;
+    }
+
+    // Future days (date > localDate)
+    if (schedDay.type === 'normal') {
       normalDays++;
-      futureTotalSessions += item.sessions;
-      futureMaxGritYes += item.sessions;
-      futureMaxGritNo += item.sessions;
-    } else if (item.type === 'grit') {
+      futureTotalSessions += schedDay.sessions;
+      futureMaxGritYes += schedDay.sessions;
+      futureMaxGritNo += schedDay.sessions;
+    } else if (schedDay.type === 'grit') {
       gritDays++;
-      futureTotalSessions += item.sessions;
-      futureMaxGritYes += item.sessions;
-      futureMaxGritNo += item.gritNo;
+      futureTotalSessions += schedDay.sessions;
+      futureMaxGritYes += schedDay.sessions;
+      futureMaxGritNo += schedDay.gritNo;
     }
   });
+
+  // If before Sep 21 baseline, reset to full schedule baseline
+  if (localDate < '2026-09-21') {
+    normalDays = 10;
+    gritDays = 4;
+    futureTotalSessions = 112;
+    futureMaxGritYes = 112;
+    futureMaxGritNo = 100;
+    todayRemainingSessions = 8;
+  }
 
   const remainingWorkingDays = normalDays + gritDays;
 
   return {
     localDate,
     isAfter4PM,
+    completedSessionsToday: completedSessions,
+    todayRemainingSessions,
+    isTodayWorkingDay,
+    todayType,
+    currentStatusText,
     remainingWorkingDays,
     normalDays,
     gritDays,
@@ -101,7 +196,6 @@ let CONFIG = getActiveScheduleConfig();
 // 2. Core Mathematical Calculation Function
 function calculateAttendance(attendedSessions, totalSessions, writesGrit) {
   const {
-    remainingWorkingDays,
     futureTotalSessions,
     futureMaxGritYes,
     futureMaxGritNo,
@@ -151,6 +245,8 @@ const landingView = document.getElementById('landing-view');
 const calculatorView = document.getElementById('calculator-view');
 const resultsView = document.getElementById('results-view');
 const headerSubtitle = document.getElementById('header-subtitle');
+const liveSessionPill = document.getElementById('live-session-pill');
+const liveSessionText = document.getElementById('live-session-text');
 
 const factRemainingDays = document.getElementById('fact-remaining-days');
 const factRemainingSessions = document.getElementById('fact-remaining-sessions');
@@ -226,6 +322,19 @@ function applyScheduleData() {
   }
   if (gritCardNoTag) {
     gritCardNoTag.textContent = `${CONFIG.gritAttendedSessionsNo} / ${CONFIG.gritTotalSessions} GRIT sessions`;
+  }
+
+  // Update Live Session Ticker / Pill
+  if (liveSessionText) {
+    if (CONFIG.localDate < '2026-09-21') {
+      liveSessionText.textContent = 'Starts Sep 21 at 8:30 AM';
+    } else if (CONFIG.isTodayWorkingDay) {
+      liveSessionText.textContent = `Live: ${CONFIG.currentStatusText}`;
+    } else if (CONFIG.todayType === 'holiday') {
+      liveSessionText.textContent = 'Holiday Today';
+    } else {
+      liveSessionText.textContent = 'Tracking Live Sessions';
+    }
   }
 }
 
@@ -532,3 +641,6 @@ if (btnRecalculate) {
 
 // Initialize on page load
 applyScheduleData();
+
+// Dynamic real-time auto-refresh (updates dynamically as periods finish every 10s)
+setInterval(applyScheduleData, 10000);
