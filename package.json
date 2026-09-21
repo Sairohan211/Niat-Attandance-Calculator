@@ -1,0 +1,23 @@
+{
+  "name": "primary",
+  "version": "1.0.0",
+  "description": "A fast, client-side, mobile-first web application designed for university students to calculate and project their attendance leading up to the **October 8th, 2026** attendance freeze.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sairohan211/Niat-Attandance-Calculator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sairohan211/Niat-Attandance-Calculator/issues"
+  },
+  "homepage": "https://github.com/Sairohan211/Niat-Attandance-Calculator#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
