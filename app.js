@@ -439,9 +439,12 @@ if (inputTotal) {
 
 if (inputAttended && inputTotal) {
   [inputAttended, inputTotal].forEach(input => {
-    input.addEventListener('wheel', (e) => {
-      e.preventDefault();
-    }, { passive: false });
+    input.addEventListener('wheel', () => {
+      // Unfocus input on scroll so number doesn't accidentally change while page scrolls freely
+      if (document.activeElement === input) {
+        input.blur();
+      }
+    });
   });
 }
 
