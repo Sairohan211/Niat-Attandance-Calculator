@@ -32,14 +32,14 @@ const SCHEDULE_CALENDAR = [
  * Start times: 8:30, 9:20, 10:25, 11:00, 11:50, 12:40, 1:30, 2:20, 3:10 -> Ends at 4:00 PM
  */
 const DAILY_TIMETABLE = [
-  { id: 1, label: 'Session 1', start: '08:30', end: '09:20', startMin: 8 * 60 + 30, endMin: 9 * 60 + 20 },
-  { id: 2, label: 'Session 2', start: '09:20', end: '10:25', startMin: 9 * 60 + 20, endMin: 10 * 60 + 25 },
-  { id: 3, label: 'Session 3', start: '10:25', end: '11:00', startMin: 10 * 60 + 25, endMin: 11 * 60 + 0 },
-  { id: 4, label: 'Session 4', start: '11:00', end: '11:50', startMin: 11 * 60 + 0, endMin: 11 * 60 + 50 },
-  { id: 5, label: 'Session 5', start: '11:50', end: '12:40', startMin: 11 * 60 + 50, endMin: 12 * 60 + 40 },
-  { id: 6, label: 'Session 6', start: '12:40', end: '13:30', startMin: 12 * 60 + 40, endMin: 13 * 60 + 30 },
-  { id: 7, label: 'Session 7', start: '13:30', end: '14:20', startMin: 13 * 60 + 30, endMin: 14 * 60 + 20 },
-  { id: 8, label: 'Session 8', start: '14:20', end: '16:00', startMin: 14 * 60 + 20, endMin: 16 * 60 + 0 }
+  { id: 1, label: 'Session 1', start: '8:30 AM', end: '9:20 AM', startMin: 8 * 60 + 30, endMin: 9 * 60 + 20 },
+  { id: 2, label: 'Session 2', start: '9:20 AM', end: '10:25 AM', startMin: 9 * 60 + 20, endMin: 10 * 60 + 25 },
+  { id: 3, label: 'Session 3', start: '10:25 AM', end: '11:00 AM', startMin: 10 * 60 + 25, endMin: 11 * 60 + 0 },
+  { id: 4, label: 'Session 4', start: '11:00 AM', end: '11:50 AM', startMin: 11 * 60 + 0, endMin: 11 * 60 + 50 },
+  { id: 5, label: 'Session 5', start: '11:50 AM', end: '12:40 PM', startMin: 11 * 60 + 50, endMin: 12 * 60 + 40 },
+  { id: 6, label: 'Session 6', start: '12:40 PM', end: '1:30 PM', startMin: 12 * 60 + 40, endMin: 13 * 60 + 30 },
+  { id: 7, label: 'Session 7', start: '1:30 PM', end: '2:20 PM', startMin: 13 * 60 + 30, endMin: 14 * 60 + 20 },
+  { id: 8, label: 'Session 8', start: '2:20 PM', end: '4:00 PM', startMin: 14 * 60 + 20, endMin: 16 * 60 + 0 }
 ];
 
 /**
@@ -68,7 +68,7 @@ function getTodaySessionProgress(now = new Date()) {
         completedSessions = i + 1;
       } else if (currentMinutes >= slot.startMin && currentMinutes < slot.endMin) {
         activeSessionName = slot.label;
-        currentStatusText = `${slot.label} in progress (${slot.start} - ${slot.end.replace('16:00', '4:00 PM').replace('13:30', '1:30 PM').replace('14:20', '2:20 PM')})`;
+        currentStatusText = `${slot.label} in progress (${slot.start} – ${slot.end})`;
         break;
       }
     }
