@@ -37,9 +37,9 @@ A fast, client-side, mobile-first web application designed for university studen
 | **Sep 28** | Mon | Normal Class | 8 | 8 | 8 |
 | **Sep 29** | Tue | Normal Class | 8 | 8 | 8 |
 | **Sep 30** | Wed | **GRIT Day 3** | 8 | 8 | 5 |
-| **Oct 01** | Thu | Normal Class | 8 | 8 | 8 |
+| **Oct 01** | Thu | **GRIT Day 4** | 8 | 8 | 5 |
 | **Oct 02** | Fri | **Holiday (Gandhi Jayanti)** | 0 | 0 | 0 |
-| **Oct 03** | Sat | **GRIT Day 4** | 8 | 8 | 5 |
+| **Oct 03** | Sat | **GRIT Day 5** | 8 | 8 | 5 |
 | **Oct 04** | Sun | **Sunday Holiday** | 0 | 0 | 0 |
 | **Oct 05** | Mon | Normal Class | 8 | 8 | 8 |
 | **Oct 06** | Tue | Normal Class | 8 | 8 | 8 |
@@ -52,20 +52,20 @@ A fast, client-side, mobile-first web application designed for university studen
 
 | As of Date (EOD) | Working Days Left | Normal Days Left | GRIT Days Left | Remaining Sessions |
 | :--- | :---: | :---: | :---: | :---: |
-| **Sep 20 (Baseline / Today)** | **14** | **10** | **4** | **112** |
-| **Sep 21 (Mon EOD)** | 13 | 9 | 4 | 104 |
-| **Sep 22 (Tue EOD)** | 12 | 8 | 4 | 96 |
-| **Sep 23 (Wed EOD - GRIT 1)** | 11 | 8 | 3 | 88 |
-| **Sep 24 (Thu EOD)** | 10 | 7 | 3 | 80 |
-| **Sep 25 (Fri EOD - Holiday)** | 10 | 7 | 3 | 80 |
-| **Sep 26 (Sat EOD - GRIT 2)** | 9 | 7 | 2 | 72 |
-| **Sep 27 (Sun EOD - Holiday)** | 9 | 7 | 2 | 72 |
-| **Sep 28 (Mon EOD)** | 8 | 6 | 2 | 64 |
-| **Sep 29 (Tue EOD)** | 7 | 5 | 2 | 56 |
-| **Sep 30 (Wed EOD - GRIT 3)** | 6 | 5 | 1 | 48 |
-| **Oct 01 (Thu EOD)** | 5 | 4 | 1 | 40 |
+| **Sep 20 (Baseline Reference)** | **14** | **9** | **5** | **112** |
+| **Sep 21 (Mon EOD)** | 13 | 8 | 5 | 104 |
+| **Sep 22 (Tue EOD)** | 12 | 7 | 5 | 96 |
+| **Sep 23 (Wed EOD - GRIT 1)** | 11 | 7 | 4 | 88 |
+| **Sep 24 (Thu EOD)** | 10 | 6 | 4 | 80 |
+| **Sep 25 (Fri EOD - Holiday)** | 10 | 6 | 4 | 80 |
+| **Sep 26 (Sat EOD - GRIT 2)** | 9 | 6 | 3 | 72 |
+| **Sep 27 (Sun EOD - Holiday)** | 9 | 6 | 3 | 72 |
+| **Sep 28 (Mon EOD)** | 8 | 5 | 3 | 64 |
+| **Sep 29 (Tue EOD)** | 7 | 4 | 3 | 56 |
+| **Sep 30 (Wed EOD - GRIT 3)** | 6 | 4 | 2 | 48 |
+| **Oct 01 (Thu EOD - GRIT 4)** | 5 | 4 | 1 | 40 |
 | **Oct 02 (Fri EOD - Holiday)** | 5 | 4 | 1 | 40 |
-| **Oct 03 (Sat EOD - GRIT 4)** | 4 | 4 | 0 | 32 |
+| **Oct 03 (Sat EOD - GRIT 5)** | 4 | 4 | 0 | 32 |
 | **Oct 04 (Sun EOD - Holiday)** | 4 | 4 | 0 | 32 |
 | **Oct 05 (Mon EOD)** | 3 | 3 | 0 | 24 |
 | **Oct 06 (Tue EOD)** | 2 | 2 | 0 | 16 |

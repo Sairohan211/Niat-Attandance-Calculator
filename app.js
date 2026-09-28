@@ -16,7 +16,7 @@ const SCHEDULE_CALENDAR = [
   { date: '2026-09-28', type: 'normal', sessions: 8, gritNo: 8 },
   { date: '2026-09-29', type: 'normal', sessions: 8, gritNo: 8 },
   { date: '2026-09-30', type: 'grit', sessions: 8, gritNo: 5 },
-  { date: '2026-10-01', type: 'normal', sessions: 8, gritNo: 8 },
+  { date: '2026-10-01', type: 'grit', sessions: 8, gritNo: 5 },
   { date: '2026-10-02', type: 'holiday', sessions: 0, gritNo: 0 },
   { date: '2026-10-03', type: 'grit', sessions: 8, gritNo: 5 },
   { date: '2026-10-04', type: 'holiday', sessions: 0, gritNo: 0 },
@@ -158,11 +158,11 @@ function getActiveScheduleConfig(now = new Date()) {
 
   // If before Sep 21 baseline, reset to full schedule baseline
   if (localDate < '2026-09-21') {
-    normalDays = 10;
-    gritDays = 4;
+    normalDays = 9;
+    gritDays = 5;
     futureTotalSessions = 112;
     futureMaxGritYes = 112;
-    futureMaxGritNo = 100;
+    futureMaxGritNo = 97;
     todayRemainingSessions = 8;
   }
 
