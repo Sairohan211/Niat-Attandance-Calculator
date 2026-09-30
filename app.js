@@ -1,50 +1,54 @@
 /**
  * NIAT x CDU Attandance Calculator
  * Client-side mathematical attendance utility
- * Dynamic schedule engine tracking up to October 8th, 2026 freeze date
+ * Dynamic schedule engine tracking up to October 14th, 2026 freeze date
  */
 
-// 1. Master Schedule Calendar (Sep 21, 2026 to Oct 8, 2026)
+// 1. Master Schedule Calendar (Sep 21, 2026 to Oct 14, 2026)
+// Average 6 sessions per working day
 const SCHEDULE_CALENDAR = [
-  { date: '2026-09-21', type: 'normal', sessions: 8, gritNo: 8 },
-  { date: '2026-09-22', type: 'normal', sessions: 8, gritNo: 8 },
-  { date: '2026-09-23', type: 'grit', sessions: 8, gritNo: 5 },
-  { date: '2026-09-24', type: 'normal', sessions: 8, gritNo: 8 },
-  { date: '2026-09-25', type: 'holiday', sessions: 0, gritNo: 0 },
-  { date: '2026-09-26', type: 'grit', sessions: 8, gritNo: 5 },
-  { date: '2026-09-27', type: 'holiday', sessions: 0, gritNo: 0 },
-  { date: '2026-09-28', type: 'normal', sessions: 8, gritNo: 8 },
-  { date: '2026-09-29', type: 'normal', sessions: 8, gritNo: 8 },
-  { date: '2026-09-30', type: 'grit', sessions: 8, gritNo: 5 },
-  { date: '2026-10-01', type: 'grit', sessions: 8, gritNo: 5 },
-  { date: '2026-10-02', type: 'holiday', sessions: 0, gritNo: 0 },
-  { date: '2026-10-03', type: 'grit', sessions: 8, gritNo: 5 },
-  { date: '2026-10-04', type: 'holiday', sessions: 0, gritNo: 0 },
-  { date: '2026-10-05', type: 'normal', sessions: 8, gritNo: 8 },
-  { date: '2026-10-06', type: 'normal', sessions: 8, gritNo: 8 },
-  { date: '2026-10-07', type: 'normal', sessions: 8, gritNo: 8 },
-  { date: '2026-10-08', type: 'normal', sessions: 8, gritNo: 8 }
+  { date: '2026-09-21', type: 'normal', sessions: 6, label: 'Mon, Sep 21' },
+  { date: '2026-09-22', type: 'normal', sessions: 6, label: 'Tue, Sep 22' },
+  { date: '2026-09-23', type: 'normal', sessions: 6, label: 'Wed, Sep 23' },
+  { date: '2026-09-24', type: 'normal', sessions: 6, label: 'Thu, Sep 24' },
+  { date: '2026-09-25', type: 'holiday', sessions: 0, label: 'Fri, Sep 25' },
+  { date: '2026-09-26', type: 'normal', sessions: 6, label: 'Sat, Sep 26' },
+  { date: '2026-09-27', type: 'holiday', sessions: 0, label: 'Sun, Sep 27' },
+  { date: '2026-09-28', type: 'normal', sessions: 6, label: 'Mon, Sep 28' },
+  { date: '2026-09-29', type: 'normal', sessions: 6, label: 'Tue, Sep 29' },
+  { date: '2026-09-30', type: 'normal', sessions: 6, label: 'Wed, Sep 30' },
+  { date: '2026-10-01', type: 'normal', sessions: 6, label: 'Thu, Oct 1' },
+  { date: '2026-10-02', type: 'holiday', sessions: 0, label: 'Fri, Oct 2' }, // Gandhi Jayanti
+  { date: '2026-10-03', type: 'normal', sessions: 6, label: 'Sat, Oct 3' },
+  { date: '2026-10-04', type: 'holiday', sessions: 0, label: 'Sun, Oct 4' },
+  { date: '2026-10-05', type: 'normal', sessions: 6, label: 'Mon, Oct 5' },
+  { date: '2026-10-06', type: 'normal', sessions: 6, label: 'Tue, Oct 6' },
+  { date: '2026-10-07', type: 'normal', sessions: 6, label: 'Wed, Oct 7' },
+  { date: '2026-10-08', type: 'normal', sessions: 6, label: 'Thu, Oct 8' },
+  { date: '2026-10-09', type: 'normal', sessions: 6, label: 'Fri, Oct 9' },
+  { date: '2026-10-10', type: 'normal', sessions: 6, label: 'Sat, Oct 10' },
+  { date: '2026-10-11', type: 'holiday', sessions: 0, label: 'Sun, Oct 11' }, // Sunday Holiday
+  { date: '2026-10-12', type: 'normal', sessions: 6, label: 'Mon, Oct 12' },
+  { date: '2026-10-13', type: 'normal', sessions: 6, label: 'Tue, Oct 13' },
+  { date: '2026-10-14', type: 'normal', sessions: 6, label: 'Wed, Oct 14' }  // Freeze Date
 ];
 
 /**
- * Daily Session Timetable
+ * Daily Session Timetable (6 Sessions per Day)
  * College Hours: 8:30 AM to 4:00 PM
- * Start times: 8:30, 9:20, 10:25, 11:00, 11:50, 12:40, 1:30, 2:20, 3:10 -> Ends at 4:00 PM
  */
 const DAILY_TIMETABLE = [
-  { id: 1, label: 'Session 1', start: '8:30 AM', end: '9:20 AM', startMin: 8 * 60 + 30, endMin: 9 * 60 + 20 },
-  { id: 2, label: 'Session 2', start: '9:20 AM', end: '10:25 AM', startMin: 9 * 60 + 20, endMin: 10 * 60 + 25 },
-  { id: 3, label: 'Session 3', start: '10:25 AM', end: '11:00 AM', startMin: 10 * 60 + 25, endMin: 11 * 60 + 0 },
-  { id: 4, label: 'Session 4', start: '11:00 AM', end: '11:50 AM', startMin: 11 * 60 + 0, endMin: 11 * 60 + 50 },
-  { id: 5, label: 'Session 5', start: '11:50 AM', end: '12:40 PM', startMin: 11 * 60 + 50, endMin: 12 * 60 + 40 },
-  { id: 6, label: 'Session 6', start: '12:40 PM', end: '1:30 PM', startMin: 12 * 60 + 40, endMin: 13 * 60 + 30 },
-  { id: 7, label: 'Session 7', start: '1:30 PM', end: '2:20 PM', startMin: 13 * 60 + 30, endMin: 14 * 60 + 20 },
-  { id: 8, label: 'Session 8', start: '2:20 PM', end: '4:00 PM', startMin: 14 * 60 + 20, endMin: 16 * 60 + 0 }
+  { id: 1, label: 'Session 1', start: '8:30 AM', end: '9:40 AM', startMin: 8 * 60 + 30, endMin: 9 * 60 + 40 },
+  { id: 2, label: 'Session 2', start: '9:40 AM', end: '10:50 AM', startMin: 9 * 60 + 40, endMin: 10 * 60 + 50 },
+  { id: 3, label: 'Session 3', start: '10:50 AM', end: '12:00 PM', startMin: 10 * 60 + 50, endMin: 12 * 60 + 0 },
+  { id: 4, label: 'Session 4', start: '1:00 PM', end: '2:00 PM', startMin: 13 * 60 + 0, endMin: 14 * 60 + 0 },
+  { id: 5, label: 'Session 5', start: '2:00 PM', end: '3:00 PM', startMin: 14 * 60 + 0, endMin: 15 * 60 + 0 },
+  { id: 6, label: 'Session 6', start: '3:00 PM', end: '4:00 PM', startMin: 15 * 60 + 0, endMin: 16 * 60 + 0 }
 ];
 
 /**
- * Determine live session progression for today
- * Returns completed count (0-8) and current period status
+ * Determine live session progression for today in the background
+ * Returns completed count (0-6) and current period status
  */
 function getTodaySessionProgress(now = new Date()) {
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -58,10 +62,10 @@ function getTodaySessionProgress(now = new Date()) {
     currentStatusText = 'Starts today at 8:30 AM';
   } else if (currentMinutes >= 16 * 60) {
     // After college ends (4:00 PM and later)
-    completedSessions = 8;
+    completedSessions = 6;
     currentStatusText = 'All sessions completed today (4:00 PM EOD)';
   } else {
-    // During college hours
+    // During college hours (8:30 AM – 4:00 PM)
     for (let i = 0; i < DAILY_TIMETABLE.length; i++) {
       const slot = DAILY_TIMETABLE[i];
       if (currentMinutes >= slot.endMin) {
@@ -73,13 +77,13 @@ function getTodaySessionProgress(now = new Date()) {
       }
     }
 
-    if (!activeSessionName && completedSessions < 8) {
+    if (!activeSessionName && completedSessions < 6) {
       currentStatusText = `${completedSessions} session${completedSessions === 1 ? '' : 's'} completed today`;
     }
   }
 
   return {
-    completedSessions: Math.min(completedSessions, 8),
+    completedSessions: Math.min(completedSessions, 6),
     currentStatusText,
     activeSessionName,
     isAfter4PM: currentMinutes >= 16 * 60
@@ -98,11 +102,8 @@ function getActiveScheduleConfig(now = new Date()) {
 
   const { completedSessions, currentStatusText, isAfter4PM } = getTodaySessionProgress(now);
 
-  let normalDays = 0;
-  let gritDays = 0;
+  let remainingWorkingDays = 0;
   let futureTotalSessions = 0;
-  let futureMaxGritYes = 0;
-  let futureMaxGritNo = 0;
   let todayRemainingSessions = 0;
   let isTodayWorkingDay = false;
   let todayType = 'none';
@@ -121,22 +122,8 @@ function getActiveScheduleConfig(now = new Date()) {
         const remainingToday = Math.max(0, schedDay.sessions - completedSessions);
         todayRemainingSessions = remainingToday;
         if (remainingToday > 0) {
-          normalDays++;
+          remainingWorkingDays++;
           futureTotalSessions += remainingToday;
-          futureMaxGritYes += remainingToday;
-          futureMaxGritNo += remainingToday;
-        }
-      } else if (schedDay.type === 'grit') {
-        isTodayWorkingDay = true;
-        const remainingToday = Math.max(0, schedDay.sessions - completedSessions);
-        todayRemainingSessions = remainingToday;
-        if (remainingToday > 0) {
-          gritDays++;
-          futureTotalSessions += remainingToday;
-          futureMaxGritYes += remainingToday;
-          // For not writing GRIT: max attendable is 5
-          const remainingGritNoToday = Math.max(0, Math.min(remainingToday, 5 - completedSessions));
-          futureMaxGritNo += remainingGritNoToday;
         }
       }
       return;
@@ -144,29 +131,17 @@ function getActiveScheduleConfig(now = new Date()) {
 
     // Future days (date > localDate)
     if (schedDay.type === 'normal') {
-      normalDays++;
+      remainingWorkingDays++;
       futureTotalSessions += schedDay.sessions;
-      futureMaxGritYes += schedDay.sessions;
-      futureMaxGritNo += schedDay.sessions;
-    } else if (schedDay.type === 'grit') {
-      gritDays++;
-      futureTotalSessions += schedDay.sessions;
-      futureMaxGritYes += schedDay.sessions;
-      futureMaxGritNo += schedDay.gritNo;
     }
   });
 
   // If before Sep 21 baseline, reset to full schedule baseline
   if (localDate < '2026-09-21') {
-    normalDays = 9;
-    gritDays = 5;
-    futureTotalSessions = 112;
-    futureMaxGritYes = 112;
-    futureMaxGritNo = 97;
-    todayRemainingSessions = 8;
+    remainingWorkingDays = 19;
+    futureTotalSessions = 114; // 19 working days * 6 sessions
+    todayRemainingSessions = 6;
   }
-
-  const remainingWorkingDays = normalDays + gritDays;
 
   return {
     localDate,
@@ -177,15 +152,8 @@ function getActiveScheduleConfig(now = new Date()) {
     todayType,
     currentStatusText,
     remainingWorkingDays,
-    normalDays,
-    gritDays,
-    sessionsPerDay: 8,
-    gritSessionsIfNotWriting: 5,
+    sessionsPerDay: 6,
     futureTotalSessions,
-    futureMaxGritYes,
-    futureMaxGritNo,
-    gritTotalSessions: gritDays * 8,
-    gritAttendedSessionsNo: gritDays * 5,
     minimumAttendance: 70
   };
 }
@@ -193,22 +161,51 @@ function getActiveScheduleConfig(now = new Date()) {
 // Global active configuration computed automatically
 let CONFIG = getActiveScheduleConfig();
 
-// 2. Core Mathematical Calculation Function
-function calculateAttendance(attendedSessions, totalSessions, writesGrit) {
+// Global set of selected leave dates (YYYY-MM-DD)
+const selectedLeaveDates = new Set();
+let tempLeaveDates = new Set();
+
+/**
+ * Calculate session capacity loss for a given date
+ */
+function getSessionCountForDate(dateStr) {
+  const { localDate, todayRemainingSessions } = CONFIG;
+  if (dateStr === localDate) {
+    return todayRemainingSessions;
+  }
+  const found = SCHEDULE_CALENDAR.find(d => d.date === dateStr);
+  return (found && found.type === 'normal') ? found.sessions : 0;
+}
+
+/**
+ * Total sessions lost based on a set of leave dates
+ */
+function calculateTotalLeaveSessionsLost(leaveSet = selectedLeaveDates) {
+  let total = 0;
+  leaveSet.forEach(dateStr => {
+    total += getSessionCountForDate(dateStr);
+  });
+  return total;
+}
+
+// 2. Core Mathematical Attendance Calculation
+function calculateAttendance(attendedSessions, totalSessions, leaveSet = selectedLeaveDates) {
   const {
     futureTotalSessions,
-    futureMaxGritYes,
-    futureMaxGritNo,
     minimumAttendance
   } = CONFIG;
 
   // Current attendance %
   const currentAttendance = totalSessions > 0 ? (attendedSessions / totalSessions) * 100 : 0;
 
-  // Maximum future attended sessions depending on GRIT selection
-  const futureMaximumAttended = writesGrit ? futureMaxGritYes : futureMaxGritNo;
+  // Calculate planned leave session deductions
+  const leaveSessionsLost = calculateTotalLeaveSessionsLost(leaveSet);
+  const plannedLeaveCount = leaveSet.size;
 
-  // Final totals after remaining days up to freeze date
+  // Maximum future attended sessions taking planned leaves into account
+  const futureMaximumAttended = Math.max(0, futureTotalSessions - leaveSessionsLost);
+
+  // Final totals after remaining days up to freeze date (Oct 16)
   const finalTotalSessions = totalSessions + futureTotalSessions;
   const maximumFinalAttended = attendedSessions + futureMaximumAttended;
   const maximumPossibleAttendance = finalTotalSessions > 0
@@ -218,7 +215,7 @@ function calculateAttendance(attendedSessions, totalSessions, writesGrit) {
   // Check 70% threshold
   const canReach70 = maximumPossibleAttendance >= minimumAttendance;
 
-  // Maximum missable sessions if >= 70% can be achieved
+  // Maximum ADDITIONAL missable sessions (beyond planned leaves) while maintaining >= 70% attendance
   let maximumMissableSessions = 0;
   if (canReach70 && futureTotalSessions > 0) {
     maximumMissableSessions = Math.floor(
@@ -232,6 +229,8 @@ function calculateAttendance(attendedSessions, totalSessions, writesGrit) {
     currentAttendance,
     futureTotalSessions,
     futureMaximumAttended,
+    leaveSessionsLost,
+    plannedLeaveCount,
     finalTotalSessions,
     maximumFinalAttended,
     maximumPossibleAttendance,
@@ -245,28 +244,35 @@ const landingView = document.getElementById('landing-view');
 const calculatorView = document.getElementById('calculator-view');
 const resultsView = document.getElementById('results-view');
 const headerSubtitle = document.getElementById('header-subtitle');
-const liveSessionPill = document.getElementById('live-session-pill');
-const liveSessionText = document.getElementById('live-session-text');
 
 const factRemainingDays = document.getElementById('fact-remaining-days');
 const factRemainingSessions = document.getElementById('fact-remaining-sessions');
-const factGritDays = document.getElementById('fact-grit-days');
-
-const gritCardYesTag = document.getElementById('grit-card-yes-tag');
-const gritCardNoTag = document.getElementById('grit-card-no-tag');
 
 const btnStartCalc = document.getElementById('btn-start-calc');
 const attendanceForm = document.getElementById('attendance-form');
 const inputAttended = document.getElementById('input-attended');
 const inputTotal = document.getElementById('input-total');
-const cardGritYes = document.getElementById('card-grit-yes');
-const cardGritNo = document.getElementById('card-grit-no');
 
 const errorAttended = document.getElementById('error-attended');
 const errorTotal = document.getElementById('error-total');
-const errorGrit = document.getElementById('error-grit');
 const groupAttended = document.getElementById('group-attended');
 const groupTotal = document.getElementById('group-total');
+
+// Leaves DOM Elements
+const btnOpenLeavesModal = document.getElementById('btn-open-leaves-modal');
+const leavesSummaryText = document.getElementById('leaves-summary-text');
+const leavesCountBadge = document.getElementById('leaves-count-badge');
+const leavesChipsContainer = document.getElementById('leaves-chips-container');
+
+// Modal DOM Elements
+const leavesModal = document.getElementById('leaves-modal');
+const modalBackdrop = document.getElementById('modal-backdrop');
+const btnCloseLeavesModal = document.getElementById('btn-close-leaves-modal');
+const modalCalendarBody = document.getElementById('modal-calendar-body');
+const modalLeavesCount = document.getElementById('modal-leaves-count');
+const modalSessionsLost = document.getElementById('modal-sessions-lost');
+const btnClearLeaves = document.getElementById('btn-clear-leaves');
+const btnConfirmLeaves = document.getElementById('btn-confirm-leaves');
 
 // Result Elements
 const resMaxPct = document.getElementById('res-max-pct');
@@ -292,7 +298,7 @@ const resCurrentTotalCount = document.getElementById('res-current-total-count');
 
 const resFutureTitle = document.getElementById('res-future-title');
 const resFutureNormalBadge = document.getElementById('res-future-normal-badge');
-const resFutureGritBadge = document.getElementById('res-future-grit-badge');
+const resFutureLeaveBadge = document.getElementById('res-future-leave-badge');
 const resFutureRatio = document.getElementById('res-future-ratio');
 const resFutureLabel = document.getElementById('res-future-label');
 const resFutureFootnote = document.getElementById('res-future-footnote');
@@ -300,12 +306,7 @@ const resFutureFootnote = document.getElementById('res-future-footnote');
 const resFinalRatio = document.getElementById('res-final-ratio');
 const resFinalPct = document.getElementById('res-final-pct');
 
-const gritExplainText = document.getElementById('grit-explain-text');
-const gritCalcBox = document.getElementById('grit-calc-box');
 const btnRecalculate = document.getElementById('btn-recalculate');
-
-// State
-let selectedGritOption = null; // 'yes' | 'no' | null
 
 /**
  * Apply dynamic constants to initial landing and form elements
@@ -315,27 +316,8 @@ function applyScheduleData() {
 
   if (factRemainingDays) factRemainingDays.textContent = `${CONFIG.remainingWorkingDays} Days`;
   if (factRemainingSessions) factRemainingSessions.textContent = `${CONFIG.futureTotalSessions} Total`;
-  if (factGritDays) factGritDays.textContent = `${CONFIG.gritDays} Days`;
-
-  if (gritCardYesTag) {
-    gritCardYesTag.textContent = `${CONFIG.gritTotalSessions} / ${CONFIG.gritTotalSessions} GRIT sessions`;
-  }
-  if (gritCardNoTag) {
-    gritCardNoTag.textContent = `${CONFIG.gritAttendedSessionsNo} / ${CONFIG.gritTotalSessions} GRIT sessions`;
-  }
-
-  // Update Live Session Ticker / Pill
-  if (liveSessionText) {
-    if (CONFIG.localDate < '2026-09-21') {
-      liveSessionText.textContent = 'Starts Sep 21 at 8:30 AM';
-    } else if (CONFIG.isTodayWorkingDay) {
-      liveSessionText.textContent = `Live: ${CONFIG.currentStatusText}`;
-    } else if (CONFIG.todayType === 'holiday') {
-      liveSessionText.textContent = 'Holiday Today';
-    } else {
-      liveSessionText.textContent = 'Tracking Live Sessions';
-    }
-  }
+  
+  updateLeavesUI();
 }
 
 // 4. Navigation helper with browser history support
@@ -373,39 +355,7 @@ window.addEventListener('popstate', (event) => {
   showView(targetView, false);
 });
 
-// 5. GRIT Single-Selection Handler
-function selectGritOption(option) {
-  selectedGritOption = option;
-  clearError(errorGrit);
-
-  if (option === 'yes') {
-    cardGritYes.classList.add('selected');
-    cardGritYes.setAttribute('aria-checked', 'true');
-    cardGritNo.classList.remove('selected');
-    cardGritNo.setAttribute('aria-checked', 'false');
-  } else if (option === 'no') {
-    cardGritNo.classList.add('selected');
-    cardGritNo.setAttribute('aria-checked', 'true');
-    cardGritYes.classList.remove('selected');
-    cardGritYes.setAttribute('aria-checked', 'false');
-  }
-}
-
-[cardGritYes, cardGritNo].forEach(card => {
-  if (!card) return;
-  card.addEventListener('click', () => {
-    selectGritOption(card.dataset.value);
-  });
-
-  card.addEventListener('keydown', (e) => {
-    if (e.key === ' ' || e.key === 'Enter') {
-      e.preventDefault();
-      selectGritOption(card.dataset.value);
-    }
-  });
-});
-
-// 6. Validation Helpers
+// 5. Validation Helpers
 function showError(errorElement, message, inputWrapper = null) {
   if (!errorElement) return;
   errorElement.textContent = message;
@@ -440,11 +390,229 @@ if (inputTotal) {
 if (inputAttended && inputTotal) {
   [inputAttended, inputTotal].forEach(input => {
     input.addEventListener('wheel', () => {
-      // Unfocus input on scroll so number doesn't accidentally change while page scrolls freely
       if (document.activeElement === input) {
         input.blur();
       }
     });
+  });
+}
+
+// 6. Interactive Leave Calendar Modal Logic
+function formatDisplayDate(dateStr) {
+  const [year, month, day] = dateStr.split('-');
+  const dateObj = new Date(year, parseInt(month, 10) - 1, parseInt(day, 10));
+  return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+}
+
+function updateLeavesUI() {
+  const count = selectedLeaveDates.size;
+  const sessionsLost = calculateTotalLeaveSessionsLost(selectedLeaveDates);
+
+  if (leavesCountBadge) {
+    leavesCountBadge.textContent = `${count} Day${count === 1 ? '' : 's'}`;
+    if (count > 0) {
+      leavesCountBadge.classList.add('has-leaves');
+    } else {
+      leavesCountBadge.classList.remove('has-leaves');
+    }
+  }
+
+  if (leavesSummaryText) {
+    if (count === 0) {
+      leavesSummaryText.textContent = 'Select leave dates';
+    } else {
+      leavesSummaryText.textContent = `${count} leave day${count === 1 ? '' : 's'} (${sessionsLost} sessions missed)`;
+    }
+  }
+
+  if (leavesChipsContainer) {
+    if (count === 0) {
+      leavesChipsContainer.style.display = 'none';
+      leavesChipsContainer.innerHTML = '';
+    } else {
+      leavesChipsContainer.style.display = 'flex';
+      leavesChipsContainer.innerHTML = '';
+
+      const sortedDates = Array.from(selectedLeaveDates).sort();
+      sortedDates.forEach(dateStr => {
+        const chip = document.createElement('div');
+        chip.className = 'leave-chip';
+        chip.innerHTML = `
+          <span>${formatDisplayDate(dateStr)}</span>
+          <button type="button" class="leave-chip-remove" data-date="${dateStr}" aria-label="Remove leave on ${dateStr}">✕</button>
+        `;
+        leavesChipsContainer.appendChild(chip);
+      });
+
+      // Attach remove handlers
+      leavesChipsContainer.querySelectorAll('.leave-chip-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const targetDate = btn.dataset.date;
+          selectedLeaveDates.delete(targetDate);
+          updateLeavesUI();
+        });
+      });
+    }
+  }
+}
+
+function updateModalFooterCounters() {
+  const count = tempLeaveDates.size;
+  const sessionsLost = calculateTotalLeaveSessionsLost(tempLeaveDates);
+
+  if (modalLeavesCount) {
+    modalLeavesCount.textContent = `${count} day${count === 1 ? '' : 's'} selected`;
+  }
+  if (modalSessionsLost) {
+    modalSessionsLost.textContent = `(${sessionsLost} session${sessionsLost === 1 ? '' : 's'} deducted)`;
+  }
+}
+
+/**
+ * Render Interactive Calendar for Sep and Oct 2026
+ */
+function renderCalendarGrid() {
+  if (!modalCalendarBody) return;
+  modalCalendarBody.innerHTML = '';
+
+  const { localDate } = CONFIG;
+
+  const months = [
+    { name: 'September 2026', monthNum: 9, startDay: 21, endDay: 30, year: 2026 },
+    { name: 'October 2026', monthNum: 10, startDay: 1, endDay: 14, year: 2026 }
+  ];
+
+  months.forEach(m => {
+    const monthBlock = document.createElement('div');
+    monthBlock.className = 'calendar-month-block';
+
+    const heading = document.createElement('div');
+    heading.className = 'month-heading';
+    heading.textContent = m.name;
+    monthBlock.appendChild(heading);
+
+    const weekdaysRow = document.createElement('div');
+    weekdaysRow.className = 'cal-weekdays';
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(wd => {
+      const span = document.createElement('span');
+      span.textContent = wd;
+      weekdaysRow.appendChild(span);
+    });
+    monthBlock.appendChild(weekdaysRow);
+
+    const daysGrid = document.createElement('div');
+    daysGrid.className = 'cal-days-grid';
+
+    // First day weekday offset (0 for Sun, 1 for Mon, ..., 6 for Sat)
+    const firstDate = new Date(m.year, m.monthNum - 1, m.startDay);
+    const firstWeekday = firstDate.getDay(); // 0 is Sun, 6 is Sat
+
+    // Empty offset cells
+    for (let i = 0; i < firstWeekday; i++) {
+      const emptyCell = document.createElement('div');
+      emptyCell.className = 'cal-day-cell empty';
+      daysGrid.appendChild(emptyCell);
+    }
+
+    // Days in current range
+    for (let d = m.startDay; d <= m.endDay; d++) {
+      const dateStr = `${m.year}-${String(m.monthNum).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const schedItem = SCHEDULE_CALENDAR.find(s => s.date === dateStr);
+
+      const cell = document.createElement('div');
+      cell.className = 'cal-day-cell';
+      cell.dataset.date = dateStr;
+
+      const isPast = dateStr < localDate;
+      const isToday = dateStr === localDate;
+      const isHoliday = !schedItem || schedItem.type === 'holiday';
+      const isWorking = schedItem && schedItem.type === 'normal';
+      const isSelected = tempLeaveDates.has(dateStr);
+
+      let subLabel = '';
+      if (isHoliday) {
+        subLabel = 'Holiday';
+        cell.classList.add('holiday');
+      } else if (isPast) {
+        subLabel = 'Past';
+        cell.classList.add('past');
+      } else {
+        subLabel = '';
+        cell.classList.add('working');
+
+        if (isToday) cell.classList.add('today');
+        if (isSelected) cell.classList.add('selected-leave');
+
+        // Toggle click handler
+        cell.addEventListener('click', () => {
+          if (tempLeaveDates.has(dateStr)) {
+            tempLeaveDates.delete(dateStr);
+            cell.classList.remove('selected-leave');
+          } else {
+            tempLeaveDates.add(dateStr);
+            cell.classList.add('selected-leave');
+          }
+          updateModalFooterCounters();
+        });
+      }
+
+      cell.innerHTML = `
+        <span class="day-num">${d}</span>
+        ${subLabel ? `<span class="day-sub">${subLabel}</span>` : ''}
+      `;
+
+      daysGrid.appendChild(cell);
+    }
+
+    monthBlock.appendChild(daysGrid);
+    modalCalendarBody.appendChild(monthBlock);
+  });
+
+  updateModalFooterCounters();
+}
+
+function openLeavesModal() {
+  tempLeaveDates = new Set(selectedLeaveDates);
+  renderCalendarGrid();
+  if (leavesModal) {
+    leavesModal.classList.add('active');
+    leavesModal.setAttribute('aria-hidden', 'false');
+  }
+}
+
+function closeLeavesModal() {
+  if (leavesModal) {
+    leavesModal.classList.remove('active');
+    leavesModal.setAttribute('aria-hidden', 'true');
+  }
+}
+
+if (btnOpenLeavesModal) {
+  btnOpenLeavesModal.addEventListener('click', openLeavesModal);
+}
+
+if (btnCloseLeavesModal) {
+  btnCloseLeavesModal.addEventListener('click', closeLeavesModal);
+}
+
+if (modalBackdrop) {
+  modalBackdrop.addEventListener('click', closeLeavesModal);
+}
+
+if (btnClearLeaves) {
+  btnClearLeaves.addEventListener('click', () => {
+    tempLeaveDates.clear();
+    renderCalendarGrid();
+  });
+}
+
+if (btnConfirmLeaves) {
+  btnConfirmLeaves.addEventListener('click', () => {
+    selectedLeaveDates.clear();
+    tempLeaveDates.forEach(d => selectedLeaveDates.add(d));
+    updateLeavesUI();
+    closeLeavesModal();
   });
 }
 
@@ -456,7 +624,6 @@ if (attendanceForm) {
 
     clearError(errorAttended, groupAttended);
     clearError(errorTotal, groupTotal);
-    clearError(errorGrit);
 
     const rawAttended = inputAttended.value.trim();
     const rawTotal = inputTotal.value.trim();
@@ -495,12 +662,6 @@ if (attendanceForm) {
       }
     }
 
-    // Validate GRIT selection
-    if (!selectedGritOption) {
-      showError(errorGrit, 'Please select whether you are writing GRIT.');
-      isValid = false;
-    }
-
     if (!isValid) return;
 
     // Refresh dynamic schedule state based on current date
@@ -508,20 +669,21 @@ if (attendanceForm) {
 
     const attended = parseInt(rawAttended, 10);
     const total = parseInt(rawTotal, 10);
-    const writesGrit = selectedGritOption === 'yes';
 
-    const result = calculateAttendance(attended, total, writesGrit);
-    renderResults(attended, total, writesGrit, result);
+    const result = calculateAttendance(attended, total, selectedLeaveDates);
+    renderResults(attended, total, result);
     showView('results');
   });
 }
 
 // 8. Render Results Function
-function renderResults(attended, total, writesGrit, result) {
+function renderResults(attended, total, result) {
   const {
     currentAttendance,
     futureTotalSessions,
     futureMaximumAttended,
+    leaveSessionsLost,
+    plannedLeaveCount,
     finalTotalSessions,
     maximumFinalAttended,
     maximumPossibleAttendance,
@@ -529,7 +691,7 @@ function renderResults(attended, total, writesGrit, result) {
     maximumMissableSessions
   } = result;
 
-  const { remainingWorkingDays, normalDays, gritDays, gritTotalSessions, gritAttendedSessionsNo } = CONFIG;
+  const { remainingWorkingDays } = CONFIG;
 
   // Format percentages
   const currentPctStr = currentAttendance.toFixed(2) + '%';
@@ -546,15 +708,33 @@ function renderResults(attended, total, writesGrit, result) {
     if (statusIconWrap) statusIconWrap.innerHTML = '✓';
     if (currentAttendance >= CONFIG.minimumAttendance) {
       if (statusTitle) statusTitle.textContent = '✓ Attendance Safe (≥ 70%)';
-      if (statusDesc) statusDesc.textContent = 'You are already at or above 70%. Keep attending your remaining sessions to maintain or further improve your standing!';
+      if (statusDesc) {
+        if (plannedLeaveCount > 0) {
+          statusDesc.textContent = `Even with your ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'}, you can comfortably stay above 70%!`;
+        } else {
+          statusDesc.textContent = 'You are already at or above 70%. Keep attending your remaining sessions to maintain or further improve your standing!';
+        }
+      }
     } else {
       if (statusTitle) statusTitle.textContent = '✓ You can reach 70%';
-      if (statusDesc) statusDesc.textContent = 'You can reach the 70% requirement by attending your remaining sessions. Stay consistent to secure your attendance!';
+      if (statusDesc) {
+        if (plannedLeaveCount > 0) {
+          statusDesc.textContent = `Accounting for your ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'}, you can still reach 70% by attending your other sessions!`;
+        } else {
+          statusDesc.textContent = 'You can reach the 70% requirement by attending your remaining sessions. Stay consistent to secure your attendance!';
+        }
+      }
     }
   } else {
     if (statusIconWrap) statusIconWrap.innerHTML = 'ℹ';
     if (statusTitle) statusTitle.textContent = 'Below 70% (Estimated)';
-    if (statusDesc) statusDesc.textContent = 'You may still fall below 70%. Don’t worry — this is only an estimate, and your actual attendance may vary based on backend updates, extra activities, or other attendance adjustments.';
+    if (statusDesc) {
+      if (plannedLeaveCount > 0) {
+        statusDesc.textContent = `Taking ${plannedLeaveCount} leave day${plannedLeaveCount === 1 ? '' : 's'} (${leaveSessionsLost} sessions) lowers your maximum attendance below 70%. Consider reducing your leaves.`;
+      } else {
+        statusDesc.textContent = 'You may still fall below 70%. Don’t worry — this is only an estimate, and your actual attendance may vary based on backend updates or adjustments.';
+      }
+    }
   }
 
   // 3. Comparison & Progress Bar
@@ -573,12 +753,30 @@ function renderResults(attended, total, writesGrit, result) {
       cardMissable.style.display = 'flex';
       if (maximumMissableSessions > 0) {
         cardMissable.className = 'card missable-card';
-        if (missableTitle) missableTitle.textContent = `You can still miss up to ${maximumMissableSessions} session${maximumMissableSessions === 1 ? '' : 's'}`;
-        if (missableDesc) missableDesc.textContent = 'Based on maintaining at least 70% attendance.';
+        if (missableTitle) {
+          if (plannedLeaveCount > 0) {
+            missableTitle.textContent = `You can still miss ${maximumMissableSessions} additional session${maximumMissableSessions === 1 ? '' : 's'}`;
+          } else {
+            missableTitle.textContent = `You can still miss up to ${maximumMissableSessions} session${maximumMissableSessions === 1 ? '' : 's'}`;
+          }
+        }
+        if (missableDesc) {
+          if (plannedLeaveCount > 0) {
+            missableDesc.textContent = `Beyond your ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'} while keeping attendance ≥ 70%.`;
+          } else {
+            missableDesc.textContent = 'Based on maintaining at least 70% attendance.';
+          }
+        }
       } else {
         cardMissable.className = 'card missable-card cannot-miss';
         if (missableTitle) missableTitle.textContent = 'You cannot afford to miss any more sessions';
-        if (missableDesc) missableDesc.textContent = 'You must attend all remaining sessions to ensure you meet the 70% requirement.';
+        if (missableDesc) {
+          if (plannedLeaveCount > 0) {
+            missableDesc.textContent = `With ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'}, you must attend all other remaining sessions.`;
+          } else {
+            missableDesc.textContent = 'You must attend all remaining sessions to ensure you meet the 70% requirement.';
+          }
+        }
       }
     } else {
       cardMissable.style.display = 'none';
@@ -593,35 +791,30 @@ function renderResults(attended, total, writesGrit, result) {
 
   // 5. Future Attendance Details Card
   if (resFutureTitle) resFutureTitle.textContent = `Remaining ${remainingWorkingDays} Working Days`;
-  if (resFutureNormalBadge) resFutureNormalBadge.textContent = `${normalDays} Normal Day${normalDays === 1 ? '' : 's'}`;
-  if (resFutureGritBadge) resFutureGritBadge.textContent = `${gritDays} GRIT Day${gritDays === 1 ? '' : 's'}`;
+  if (resFutureNormalBadge) resFutureNormalBadge.textContent = `${remainingWorkingDays} Days Remaining`;
+  
+  if (resFutureLeaveBadge) {
+    if (plannedLeaveCount > 0) {
+      resFutureLeaveBadge.style.display = 'inline-block';
+      resFutureLeaveBadge.textContent = `${plannedLeaveCount} Leave${plannedLeaveCount === 1 ? '' : 's'} (${leaveSessionsLost} sess off)`;
+    } else {
+      resFutureLeaveBadge.style.display = 'none';
+    }
+  }
+
   if (resFutureRatio) resFutureRatio.textContent = `${futureMaximumAttended} / ${futureTotalSessions}`;
   
   if (resFutureFootnote) {
-    if (writesGrit) {
-      resFutureFootnote.textContent = `Writing GRIT: All 8 sessions count on all ${gritDays} GRIT days (${futureMaximumAttended} / ${futureTotalSessions} sessions possible).`;
+    if (plannedLeaveCount > 0) {
+      resFutureFootnote.textContent = `Taking ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'} (${leaveSessionsLost} sessions deducted). ${futureMaximumAttended} of ${futureTotalSessions} future sessions attendable.`;
     } else {
-      resFutureFootnote.textContent = `Not writing GRIT: Only 5 of 8 sessions count on ${gritDays} GRIT days (${futureMaximumAttended} / ${futureTotalSessions} sessions possible).`;
+      resFutureFootnote.textContent = `The number of sessions varies per hall; calculated on an average of 6 sessions per working day (${futureMaximumAttended} total sessions estimated remaining).`;
     }
   }
 
   // 6. Final Projected Attendance Card
   if (resFinalRatio) resFinalRatio.textContent = `${maximumFinalAttended} / ${finalTotalSessions}`;
   if (resFinalPct) resFinalPct.textContent = maxPctStr;
-
-  // 7. GRIT Explanation Card
-  if (gritExplainText && gritCalcBox) {
-    if (gritDays === 0) {
-      gritExplainText.textContent = 'All remaining days until October 8th are normal classes (no further GRIT days remaining).';
-      gritCalcBox.innerHTML = `<code>0 remaining GRIT days\nAll future sessions follow normal 8-session schedule.</code>`;
-    } else if (writesGrit) {
-      gritExplainText.textContent = `You are writing GRIT, so all 8 sessions count on each remaining GRIT day.`;
-      gritCalcBox.innerHTML = `<code>${gritDays} GRIT day${gritDays === 1 ? '' : 's'} × 8 sessions\n= ${gritTotalSessions} possible attended sessions</code>`;
-    } else {
-      gritExplainText.textContent = `You are not writing GRIT, so only 5 of the 8 sessions count as attended on each remaining GRIT day.`;
-      gritCalcBox.innerHTML = `<code>${gritDays} GRIT day${gritDays === 1 ? '' : 's'} × 5 sessions\n= ${gritAttendedSessionsNo} possible attended sessions (${gritTotalSessions - gritAttendedSessionsNo} sessions deduction)</code>`;
-    }
-  }
 }
 
 // 9. Event Listeners for view changes
@@ -645,5 +838,5 @@ if (btnRecalculate) {
 // Initialize on page load
 applyScheduleData();
 
-// Dynamic real-time auto-refresh (updates dynamically as periods finish every 10s)
+// Dynamic real-time auto-refresh in background (updates dynamically every 10s)
 setInterval(applyScheduleData, 10000);

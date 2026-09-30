@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NIAT x CDU Attandance Calculator</title>
-  <meta name="description" content="Calculate your university attendance for the remaining working days including GRIT exam days up to the October 8th freeze. Fast, simple, and accurate.">
+  <meta name="description" content="Calculate your university attendance for the remaining working days up to the October 14th freeze. Fast, simple, and accurate.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -17,9 +17,6 @@
       <div class="header-badges">
         <div class="badge-pill">
           <span class="status-dot"></span> Unofficial Attendance Tool
-        </div>
-        <div class="badge-pill live-pill" id="live-session-pill">
-          <span class="status-dot live-dot"></span> <span id="live-session-text">Live: Tracking Sessions</span>
         </div>
       </div>
       <h1 class="main-title">NIAT x CDU Attandance Calculator</h1>
@@ -41,7 +38,7 @@
         
         <h2 class="section-heading">Plan Your Attendance With Confidence</h2>
         <p class="landing-description">
-          Check your current attendance, account for GRIT days, and see your maximum possible attendance. Sessions decrement dynamically as each period completes (8:30 AM – 4:00 PM).
+          Check your current attendance and see your maximum possible attendance up to the <strong>October 14th</strong> freeze. Sessions decrement dynamically in real-time as each period completes (8:30 AM – 4:00 PM).
         </p>
 
         <div class="key-facts-grid">
@@ -51,16 +48,21 @@
           </div>
           <div class="fact-item">
             <span class="fact-label">Remaining Days</span>
-            <span class="fact-value" id="fact-remaining-days">14 Days</span>
+            <span class="fact-value" id="fact-remaining-days">-- Days</span>
           </div>
           <div class="fact-item">
             <span class="fact-label">Remaining Sessions</span>
-            <span class="fact-value" id="fact-remaining-sessions">112 Total</span>
+            <span class="fact-value" id="fact-remaining-sessions">-- Total</span>
           </div>
-          <div class="fact-item">
-            <span class="fact-label">GRIT Days</span>
-            <span class="fact-value" id="fact-grit-days">5 Days</span>
-          </div>
+        </div>
+
+        <div class="info-note">
+          <svg class="info-note-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span>The number of sessions varies per hall. On average, we have calculated using <strong>6 sessions per day</strong>.</span>
         </div>
 
         <button id="btn-start-calc" class="btn btn-primary btn-large">
@@ -93,7 +95,7 @@
                 type="number" 
                 id="input-attended" 
                 class="text-input" 
-                placeholder="e.g. 104" 
+                placeholder="e.g. 80" 
                 min="0" 
                 step="1"
                 required
@@ -116,7 +118,7 @@
                 type="number" 
                 id="input-total" 
                 class="text-input" 
-                placeholder="e.g. 160" 
+                placeholder="e.g. 110" 
                 min="1" 
                 step="1" 
                 required
@@ -128,41 +130,32 @@
             <div class="error-msg" id="error-total"></div>
           </div>
 
-          <!-- Input 3: GRIT Selection Cards -->
-          <div class="form-group" id="group-grit">
+          <!-- Input 3: Planned Leaves -->
+          <div class="form-group" id="group-leaves">
             <div class="label-row">
               <span class="step-num">3</span>
-              <label class="input-label">Are you writing GRIT in the next 2 weeks?</label>
+              <label class="input-label" for="btn-open-leaves-modal">Planned Leaves (Optional)</label>
             </div>
             
-            <div class="grit-cards-container" role="radiogroup" aria-label="GRIT participation choice">
-              <!-- Card 1: Writing GRIT -->
-              <div class="grit-card" id="card-grit-yes" role="radio" aria-checked="false" tabindex="0" data-value="yes">
-                <div class="card-radio-icon">
-                  <span class="box-icon unchecked">☐</span>
-                  <span class="box-icon checked">☑</span>
+            <div class="leaves-trigger-wrapper">
+              <button type="button" id="btn-open-leaves-modal" class="leaves-picker-btn">
+                <div class="leaves-picker-left">
+                  <svg class="leaves-cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span id="leaves-summary-text">Select leave dates</span>
                 </div>
-                <div class="card-content">
-                  <div class="card-title">I'm writing GRIT</div>
-                  <div class="card-desc">All 8 sessions count on GRIT days.</div>
-                  <div class="card-tag" id="grit-card-yes-tag">32 / 32 GRIT sessions</div>
-                </div>
-              </div>
-
-              <!-- Card 2: Not Writing GRIT -->
-              <div class="grit-card" id="card-grit-no" role="radio" aria-checked="false" tabindex="0" data-value="no">
-                <div class="card-radio-icon">
-                  <span class="box-icon unchecked">☐</span>
-                  <span class="box-icon checked">☑</span>
-                </div>
-                <div class="card-content">
-                  <div class="card-title">I'm not writing GRIT</div>
-                  <div class="card-desc">Only 5 of the 8 sessions count on GRIT days.</div>
-                  <div class="card-tag tag-warning" id="grit-card-no-tag">20 / 32 GRIT sessions</div>
-                </div>
-              </div>
+                <span class="leaves-badge" id="leaves-count-badge">0 Days</span>
+              </button>
             </div>
-            <div class="error-msg" id="error-grit"></div>
+
+            <!-- Chips container for selected leave dates -->
+            <div id="leaves-chips-container" class="leaves-chips-container" style="display: none;"></div>
+            
+            <p class="helper-text">Select any future dates you will NOT attend college before October 14th.</p>
           </div>
 
           <!-- Action Button -->
@@ -177,13 +170,47 @@
       </div>
     </section>
 
+    <!-- Interactive Leave Calendar Modal -->
+    <div id="leaves-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-labelledby="modal-leaves-title">
+      <div class="modal-backdrop" id="modal-backdrop"></div>
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <h3 id="modal-leaves-title" class="modal-title">Select Leave Dates</h3>
+            <p class="modal-subtitle">Pick the working days you plan to be absent up to Oct 14th.</p>
+          </div>
+          <button type="button" id="btn-close-leaves-modal" class="modal-close-btn" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-calendar-body" id="modal-calendar-body">
+          <!-- Calendar grids for Sep and Oct 2026 dynamically rendered here -->
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-leaves-info">
+            <span id="modal-leaves-count">0 days selected</span>
+            <span class="modal-sessions-lost" id="modal-sessions-lost">(0 sessions deducted)</span>
+          </div>
+          <div class="modal-actions">
+            <button type="button" id="btn-clear-leaves" class="btn btn-secondary btn-sm">Clear</button>
+            <button type="button" id="btn-confirm-leaves" class="btn btn-primary btn-sm">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- STEP 3: Results View -->
     <section id="results-view" class="view-section">
       <!-- 1. Hero Maximum Attendance Card -->
       <div class="card result-hero-card">
         <span class="hero-tag">MAXIMUM POSSIBLE ATTENDANCE</span>
         <div class="hero-percentage" id="res-max-pct">--%</div>
-        <p class="hero-subtext">If you attend every possible session from now.</p>
+        <p class="hero-subtext">If you attend every remaining session up to Oct 14th.</p>
         
         <!-- 2. 70% Status Banner -->
         <div id="status-banner" class="status-banner">
@@ -276,18 +303,18 @@
         <div class="card detail-card">
           <div class="detail-header">
             <span class="detail-badge">FUTURE CAPACITY</span>
-            <h4 class="detail-title" id="res-future-title">Remaining 14 Working Days</h4>
+            <h4 class="detail-title" id="res-future-title">Remaining Working Days</h4>
           </div>
           <div class="future-days-pill-row">
-            <span class="badge-mini" id="res-future-normal-badge">9 Normal Days</span>
-            <span class="badge-mini badge-grit" id="res-future-grit-badge">5 GRIT Days</span>
+            <span class="badge-mini" id="res-future-normal-badge">-- Days Remaining</span>
+            <span class="badge-mini badge-leave" id="res-future-leave-badge" style="display: none;">0 Leaves Planned</span>
           </div>
           <div class="detail-metric">
-            <div class="detail-ratio" id="res-future-ratio">-- / 112</div>
+            <div class="detail-ratio" id="res-future-ratio">-- / --</div>
             <div class="detail-pct" id="res-future-label">sessions</div>
           </div>
           <div class="detail-footnote" id="res-future-footnote">
-            --
+            The number of sessions varies per hall; calculated on an average of 6 sessions per working day.
           </div>
         </div>
 
@@ -307,24 +334,6 @@
               <div class="projected-tag">Maximum Possible Attendance</div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- 7. GRIT Explanation Card -->
-      <div class="card grit-explain-card" id="card-grit-explain">
-        <div class="explain-header">
-          <div class="explain-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="16" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12.01" y2="8"></line>
-            </svg>
-          </div>
-          <h4 class="explain-title">GRIT Attendance Explanation</h4>
-        </div>
-        <p class="explain-body" id="grit-explain-text">--</p>
-        <div class="calculation-box" id="grit-calc-box">
-          <code>--</code>
         </div>
       </div>
 
