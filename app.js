@@ -263,6 +263,7 @@ const btnOpenLeavesModal = document.getElementById('btn-open-leaves-modal');
 const leavesSummaryText = document.getElementById('leaves-summary-text');
 const leavesCountBadge = document.getElementById('leaves-count-badge');
 const leavesChipsContainer = document.getElementById('leaves-chips-container');
+const btnClearLeavesForm = document.getElementById('btn-clear-leaves-form');
 
 // Modal DOM Elements
 const leavesModal = document.getElementById('leaves-modal');
@@ -422,6 +423,14 @@ function updateLeavesUI() {
       leavesSummaryText.textContent = 'Select leave dates';
     } else {
       leavesSummaryText.textContent = `${count} leave day${count === 1 ? '' : 's'} (${sessionsLost} sessions missed)`;
+    }
+  }
+
+  if (btnClearLeavesForm) {
+    if (count > 0) {
+      btnClearLeavesForm.style.display = 'inline-flex';
+    } else {
+      btnClearLeavesForm.style.display = 'none';
     }
   }
 
@@ -613,6 +622,15 @@ if (btnConfirmLeaves) {
     tempLeaveDates.forEach(d => selectedLeaveDates.add(d));
     updateLeavesUI();
     closeLeavesModal();
+  });
+}
+
+if (btnClearLeavesForm) {
+  btnClearLeavesForm.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    selectedLeaveDates.clear();
+    updateLeavesUI();
   });
 }
 
