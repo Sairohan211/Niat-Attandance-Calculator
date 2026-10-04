@@ -1,54 +1,57 @@
 /**
  * NIAT x CDU Attandance Calculator
  * Client-side mathematical attendance utility
- * Dynamic schedule engine tracking up to October 14th, 2026 freeze date
+ * Dynamic schedule engine tracking up to October 16th, 2026 freeze date
  */
 
-// 1. Master Schedule Calendar (Sep 21, 2026 to Oct 14, 2026)
-// Average 6 sessions per working day
+// 1. Master Schedule Calendar (Sep 21, 2026 to Oct 16, 2026)
+// Average 7 sessions per working day
 const SCHEDULE_CALENDAR = [
-  { date: '2026-09-21', type: 'normal', sessions: 6, label: 'Mon, Sep 21' },
-  { date: '2026-09-22', type: 'normal', sessions: 6, label: 'Tue, Sep 22' },
-  { date: '2026-09-23', type: 'normal', sessions: 6, label: 'Wed, Sep 23' },
-  { date: '2026-09-24', type: 'normal', sessions: 6, label: 'Thu, Sep 24' },
+  { date: '2026-09-21', type: 'normal', sessions: 7, label: 'Mon, Sep 21' },
+  { date: '2026-09-22', type: 'normal', sessions: 7, label: 'Tue, Sep 22' },
+  { date: '2026-09-23', type: 'normal', sessions: 7, label: 'Wed, Sep 23' },
+  { date: '2026-09-24', type: 'normal', sessions: 7, label: 'Thu, Sep 24' },
   { date: '2026-09-25', type: 'holiday', sessions: 0, label: 'Fri, Sep 25' },
-  { date: '2026-09-26', type: 'normal', sessions: 6, label: 'Sat, Sep 26' },
+  { date: '2026-09-26', type: 'normal', sessions: 7, label: 'Sat, Sep 26' },
   { date: '2026-09-27', type: 'holiday', sessions: 0, label: 'Sun, Sep 27' },
-  { date: '2026-09-28', type: 'normal', sessions: 6, label: 'Mon, Sep 28' },
-  { date: '2026-09-29', type: 'normal', sessions: 6, label: 'Tue, Sep 29' },
-  { date: '2026-09-30', type: 'normal', sessions: 6, label: 'Wed, Sep 30' },
-  { date: '2026-10-01', type: 'normal', sessions: 6, label: 'Thu, Oct 1' },
+  { date: '2026-09-28', type: 'normal', sessions: 7, label: 'Mon, Sep 28' },
+  { date: '2026-09-29', type: 'normal', sessions: 7, label: 'Tue, Sep 29' },
+  { date: '2026-09-30', type: 'normal', sessions: 7, label: 'Wed, Sep 30' },
+  { date: '2026-10-01', type: 'normal', sessions: 7, label: 'Thu, Oct 1' },
   { date: '2026-10-02', type: 'holiday', sessions: 0, label: 'Fri, Oct 2' }, // Gandhi Jayanti
-  { date: '2026-10-03', type: 'normal', sessions: 6, label: 'Sat, Oct 3' },
+  { date: '2026-10-03', type: 'normal', sessions: 7, label: 'Sat, Oct 3' },
   { date: '2026-10-04', type: 'holiday', sessions: 0, label: 'Sun, Oct 4' },
-  { date: '2026-10-05', type: 'normal', sessions: 6, label: 'Mon, Oct 5' },
-  { date: '2026-10-06', type: 'normal', sessions: 6, label: 'Tue, Oct 6' },
-  { date: '2026-10-07', type: 'normal', sessions: 6, label: 'Wed, Oct 7' },
-  { date: '2026-10-08', type: 'normal', sessions: 6, label: 'Thu, Oct 8' },
-  { date: '2026-10-09', type: 'normal', sessions: 6, label: 'Fri, Oct 9' },
-  { date: '2026-10-10', type: 'normal', sessions: 6, label: 'Sat, Oct 10' },
+  { date: '2026-10-05', type: 'normal', sessions: 7, label: 'Mon, Oct 5' },
+  { date: '2026-10-06', type: 'normal', sessions: 7, label: 'Tue, Oct 6' },
+  { date: '2026-10-07', type: 'normal', sessions: 7, label: 'Wed, Oct 7' },
+  { date: '2026-10-08', type: 'normal', sessions: 7, label: 'Thu, Oct 8' },
+  { date: '2026-10-09', type: 'normal', sessions: 7, label: 'Fri, Oct 9' },
+  { date: '2026-10-10', type: 'normal', sessions: 7, label: 'Sat, Oct 10' },
   { date: '2026-10-11', type: 'holiday', sessions: 0, label: 'Sun, Oct 11' }, // Sunday Holiday
-  { date: '2026-10-12', type: 'normal', sessions: 6, label: 'Mon, Oct 12' },
-  { date: '2026-10-13', type: 'normal', sessions: 6, label: 'Tue, Oct 13' },
-  { date: '2026-10-14', type: 'normal', sessions: 6, label: 'Wed, Oct 14' }  // Freeze Date
+  { date: '2026-10-12', type: 'normal', sessions: 7, label: 'Mon, Oct 12' },
+  { date: '2026-10-13', type: 'normal', sessions: 7, label: 'Tue, Oct 13' },
+  { date: '2026-10-14', type: 'normal', sessions: 7, label: 'Wed, Oct 14' },
+  { date: '2026-10-15', type: 'normal', sessions: 7, label: 'Thu, Oct 15' },
+  { date: '2026-10-16', type: 'normal', sessions: 7, label: 'Fri, Oct 16' }  // Freeze Date
 ];
 
 /**
- * Daily Session Timetable (6 Sessions per Day)
+ * Daily Session Timetable (7 Sessions per Day)
  * College Hours: 8:30 AM to 4:00 PM
  */
 const DAILY_TIMETABLE = [
-  { id: 1, label: 'Session 1', start: '8:30 AM', end: '9:40 AM', startMin: 8 * 60 + 30, endMin: 9 * 60 + 40 },
-  { id: 2, label: 'Session 2', start: '9:40 AM', end: '10:50 AM', startMin: 9 * 60 + 40, endMin: 10 * 60 + 50 },
-  { id: 3, label: 'Session 3', start: '10:50 AM', end: '12:00 PM', startMin: 10 * 60 + 50, endMin: 12 * 60 + 0 },
-  { id: 4, label: 'Session 4', start: '1:00 PM', end: '2:00 PM', startMin: 13 * 60 + 0, endMin: 14 * 60 + 0 },
-  { id: 5, label: 'Session 5', start: '2:00 PM', end: '3:00 PM', startMin: 14 * 60 + 0, endMin: 15 * 60 + 0 },
-  { id: 6, label: 'Session 6', start: '3:00 PM', end: '4:00 PM', startMin: 15 * 60 + 0, endMin: 16 * 60 + 0 }
+  { id: 1, label: 'Session 1', start: '8:30 AM', end: '9:30 AM', startMin: 8 * 60 + 30, endMin: 9 * 60 + 30 },
+  { id: 2, label: 'Session 2', start: '9:30 AM', end: '10:30 AM', startMin: 9 * 60 + 30, endMin: 10 * 60 + 30 },
+  { id: 3, label: 'Session 3', start: '10:30 AM', end: '11:30 AM', startMin: 10 * 60 + 30, endMin: 11 * 60 + 30 },
+  { id: 4, label: 'Session 4', start: '11:30 AM', end: '12:30 PM', startMin: 11 * 60 + 30, endMin: 12 * 60 + 30 },
+  { id: 5, label: 'Session 5', start: '1:30 PM', end: '2:20 PM', startMin: 13 * 60 + 30, endMin: 14 * 60 + 20 },
+  { id: 6, label: 'Session 6', start: '2:20 PM', end: '3:10 PM', startMin: 14 * 60 + 20, endMin: 15 * 60 + 10 },
+  { id: 7, label: 'Session 7', start: '3:10 PM', end: '4:00 PM', startMin: 15 * 60 + 10, endMin: 16 * 60 + 0 }
 ];
 
 /**
  * Determine live session progression for today in the background
- * Returns completed count (0-6) and current period status
+ * Returns completed count (0-7) and current period status
  */
 function getTodaySessionProgress(now = new Date()) {
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -62,7 +65,7 @@ function getTodaySessionProgress(now = new Date()) {
     currentStatusText = 'Starts today at 8:30 AM';
   } else if (currentMinutes >= 16 * 60) {
     // After college ends (4:00 PM and later)
-    completedSessions = 6;
+    completedSessions = DAILY_TIMETABLE.length;
     currentStatusText = 'All sessions completed today (4:00 PM EOD)';
   } else {
     // During college hours (8:30 AM – 4:00 PM)
@@ -77,13 +80,13 @@ function getTodaySessionProgress(now = new Date()) {
       }
     }
 
-    if (!activeSessionName && completedSessions < 6) {
+    if (!activeSessionName && completedSessions < DAILY_TIMETABLE.length) {
       currentStatusText = `${completedSessions} session${completedSessions === 1 ? '' : 's'} completed today`;
     }
   }
 
   return {
-    completedSessions: Math.min(completedSessions, 6),
+    completedSessions: Math.min(completedSessions, DAILY_TIMETABLE.length),
     currentStatusText,
     activeSessionName,
     isAfter4PM: currentMinutes >= 16 * 60
@@ -138,9 +141,9 @@ function getActiveScheduleConfig(now = new Date()) {
 
   // If before Sep 21 baseline, reset to full schedule baseline
   if (localDate < '2026-09-21') {
-    remainingWorkingDays = 19;
-    futureTotalSessions = 114; // 19 working days * 6 sessions
-    todayRemainingSessions = 6;
+    remainingWorkingDays = 21;
+    futureTotalSessions = 147; // 21 working days * 7 sessions
+    todayRemainingSessions = 7;
   }
 
   return {
@@ -152,7 +155,7 @@ function getActiveScheduleConfig(now = new Date()) {
     todayType,
     currentStatusText,
     remainingWorkingDays,
-    sessionsPerDay: 6,
+    sessionsPerDay: 7,
     futureTotalSessions,
     minimumAttendance: 70
   };
@@ -489,7 +492,7 @@ function renderCalendarGrid() {
 
   const months = [
     { name: 'September 2026', monthNum: 9, startDay: 21, endDay: 30, year: 2026 },
-    { name: 'October 2026', monthNum: 10, startDay: 1, endDay: 14, year: 2026 }
+    { name: 'October 2026', monthNum: 10, startDay: 1, endDay: 16, year: 2026 }
   ];
 
   months.forEach(m => {
@@ -826,7 +829,7 @@ function renderResults(attended, total, result) {
     if (plannedLeaveCount > 0) {
       resFutureFootnote.textContent = `Taking ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'} (${leaveSessionsLost} sessions deducted). ${futureMaximumAttended} of ${futureTotalSessions} future sessions attendable.`;
     } else {
-      resFutureFootnote.textContent = `The number of sessions varies per hall; calculated on an average of 6 sessions per working day (${futureMaximumAttended} total sessions estimated remaining).`;
+      resFutureFootnote.textContent = `The number of sessions varies per hall; calculated on an average of 7 sessions per working day (${futureMaximumAttended} total sessions estimated remaining).`;
     }
   }
 
