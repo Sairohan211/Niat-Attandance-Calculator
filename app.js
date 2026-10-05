@@ -157,7 +157,7 @@ function getActiveScheduleConfig(now = new Date()) {
     remainingWorkingDays,
     sessionsPerDay: 7,
     futureTotalSessions,
-    minimumAttendance: 70
+    minimumAttendance: 60
   };
 }
 
@@ -215,14 +215,14 @@ function calculateAttendance(attendedSessions, totalSessions, leaveSet = selecte
     ? (maximumFinalAttended / finalTotalSessions) * 100
     : currentAttendance;
 
-  // Check 70% threshold
+  // Check 60% threshold
   const canReach70 = maximumPossibleAttendance >= minimumAttendance;
 
-  // Maximum ADDITIONAL missable sessions (beyond planned leaves) while maintaining >= 70% attendance
+  // Maximum ADDITIONAL missable sessions (beyond planned leaves) while maintaining >= 60% attendance
   let maximumMissableSessions = 0;
   if (canReach70 && futureTotalSessions > 0) {
     maximumMissableSessions = Math.floor(
-      maximumFinalAttended - (0.70 * finalTotalSessions)
+      maximumFinalAttended - ((CONFIG.minimumAttendance / 100) * finalTotalSessions)
     );
     if (maximumMissableSessions < 0) maximumMissableSessions = 0;
     if (maximumMissableSessions > futureMaximumAttended) maximumMissableSessions = futureMaximumAttended;
@@ -721,39 +721,39 @@ function renderResults(attended, total, result) {
   // 1. Hero Percentage
   if (resMaxPct) resMaxPct.textContent = maxPctStr;
 
-  // 2. 70% Status Banner
+  // 2. 60% Status Banner
   if (statusBanner) {
     statusBanner.className = 'status-banner ' + (canReach70 ? 'success' : 'danger');
   }
   if (canReach70) {
     if (statusIconWrap) statusIconWrap.innerHTML = '✓';
     if (currentAttendance >= CONFIG.minimumAttendance) {
-      if (statusTitle) statusTitle.textContent = '✓ Attendance Safe (≥ 70%)';
+      if (statusTitle) statusTitle.textContent = '✓ Attendance Safe (≥ 60%)';
       if (statusDesc) {
         if (plannedLeaveCount > 0) {
-          statusDesc.textContent = `Even with your ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'}, you can comfortably stay above 70%!`;
+          statusDesc.textContent = `Even with your ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'}, you can comfortably stay above 60%!`;
         } else {
-          statusDesc.textContent = 'You are already at or above 70%. Keep attending your remaining sessions to maintain or further improve your standing!';
+          statusDesc.textContent = 'You are already at or above 60%. Keep attending your remaining sessions to maintain or further improve your standing!';
         }
       }
     } else {
-      if (statusTitle) statusTitle.textContent = '✓ You can reach 70%';
+      if (statusTitle) statusTitle.textContent = '✓ You can reach 60%';
       if (statusDesc) {
         if (plannedLeaveCount > 0) {
-          statusDesc.textContent = `Accounting for your ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'}, you can still reach 70% by attending your other sessions!`;
+          statusDesc.textContent = `Accounting for your ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'}, you can still reach 60% by attending your other sessions!`;
         } else {
-          statusDesc.textContent = 'You can reach the 70% requirement by attending your remaining sessions. Stay consistent to secure your attendance!';
+          statusDesc.textContent = 'You can reach the 60% requirement by attending your remaining sessions. Stay consistent to secure your attendance!';
         }
       }
     }
   } else {
     if (statusIconWrap) statusIconWrap.innerHTML = 'ℹ';
-    if (statusTitle) statusTitle.textContent = 'Below 70% (Estimated)';
+    if (statusTitle) statusTitle.textContent = 'Below 60% (Estimated)';
     if (statusDesc) {
       if (plannedLeaveCount > 0) {
-        statusDesc.textContent = `Taking ${plannedLeaveCount} leave day${plannedLeaveCount === 1 ? '' : 's'} (${leaveSessionsLost} sessions) lowers your maximum attendance below 70%. Consider reducing your leaves.`;
+        statusDesc.textContent = `Taking ${plannedLeaveCount} leave day${plannedLeaveCount === 1 ? '' : 's'} (${leaveSessionsLost} sessions) lowers your maximum attendance below 60%. Consider reducing your leaves.`;
       } else {
-        statusDesc.textContent = 'You may still fall below 70%. Don’t worry — this is only an estimate, and your actual attendance may vary based on backend updates or adjustments.';
+        statusDesc.textContent = 'You may still fall below 60%. Don’t worry — this is only an estimate, and your actual attendance may vary based on backend updates or adjustments.';
       }
     }
   }
@@ -783,9 +783,9 @@ function renderResults(attended, total, result) {
         }
         if (missableDesc) {
           if (plannedLeaveCount > 0) {
-            missableDesc.textContent = `Beyond your ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'} while keeping attendance ≥ 70%.`;
+            missableDesc.textContent = `Beyond your ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'} while keeping attendance ≥ 60%.`;
           } else {
-            missableDesc.textContent = 'Based on maintaining at least 70% attendance.';
+            missableDesc.textContent = 'Based on maintaining at least 60% attendance.';
           }
         }
       } else {
@@ -795,7 +795,7 @@ function renderResults(attended, total, result) {
           if (plannedLeaveCount > 0) {
             missableDesc.textContent = `With ${plannedLeaveCount} planned leave day${plannedLeaveCount === 1 ? '' : 's'}, you must attend all other remaining sessions.`;
           } else {
-            missableDesc.textContent = 'You must attend all remaining sessions to ensure you meet the 70% requirement.';
+            missableDesc.textContent = 'You must attend all remaining sessions to ensure you meet the 60% requirement.';
           }
         }
       }

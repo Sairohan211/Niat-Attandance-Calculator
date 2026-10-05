@@ -8,7 +8,7 @@ A fast, client-side, mobile-first web application designed for university studen
 - **Baseline Reference**: September 20th, 2026
 - **Sessions Per Working Day**: 7 sessions (calculated on average; actual sessions vary per hall)
 - **Planned Leaves Calculator**: Interactive calendar picker allowing students to select planned absent days up to October 16th and project their adjusted attendance accordingly.
-- **Target Benchmark**: 70.00% minimum attendance
+- **Target Benchmark**: 60.00% minimum attendance
 - **Dynamic Real-Time Session Engine**: Automatically decrements remaining sessions in real time in the background as each college period concludes (8:30 AM to 4:00 PM).
 
 ### Daily Session Timetable (8:30 AM – 4:00 PM)
