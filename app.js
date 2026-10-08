@@ -1,10 +1,10 @@
 /**
  * NIAT x CDU Attandance Calculator
  * Client-side mathematical attendance utility
- * Dynamic schedule engine tracking up to October 16th, 2026 freeze date
+ * Dynamic schedule engine tracking up to October 14th, 2026 freeze date
  */
 
-// 1. Master Schedule Calendar (Sep 21, 2026 to Oct 16, 2026)
+// 1. Master Schedule Calendar (Sep 21, 2026 to Oct 14, 2026)
 // Average 7 sessions per working day
 const SCHEDULE_CALENDAR = [
   { date: '2026-09-21', type: 'normal', sessions: 7, label: 'Mon, Sep 21' },
@@ -30,9 +30,7 @@ const SCHEDULE_CALENDAR = [
   { date: '2026-10-11', type: 'holiday', sessions: 0, label: 'Sun, Oct 11' }, // Sunday Holiday
   { date: '2026-10-12', type: 'normal', sessions: 7, label: 'Mon, Oct 12' },
   { date: '2026-10-13', type: 'normal', sessions: 7, label: 'Tue, Oct 13' },
-  { date: '2026-10-14', type: 'normal', sessions: 7, label: 'Wed, Oct 14' },
-  { date: '2026-10-15', type: 'normal', sessions: 7, label: 'Thu, Oct 15' },
-  { date: '2026-10-16', type: 'normal', sessions: 7, label: 'Fri, Oct 16' }  // Freeze Date
+  { date: '2026-10-14', type: 'normal', sessions: 7, label: 'Wed, Oct 14' }  // Freeze Date
 ];
 
 /**
@@ -141,8 +139,8 @@ function getActiveScheduleConfig(now = new Date()) {
 
   // If before Sep 21 baseline, reset to full schedule baseline
   if (localDate < '2026-09-21') {
-    remainingWorkingDays = 21;
-    futureTotalSessions = 147; // 21 working days * 7 sessions
+    remainingWorkingDays = 19;
+    futureTotalSessions = 133; // 19 working days * 7 sessions
     todayRemainingSessions = 7;
   }
 
@@ -208,7 +206,7 @@ function calculateAttendance(attendedSessions, totalSessions, leaveSet = selecte
   // Maximum future attended sessions taking planned leaves into account
   const futureMaximumAttended = Math.max(0, futureTotalSessions - leaveSessionsLost);
 
-  // Final totals after remaining days up to freeze date (Oct 16)
+  // Final totals after remaining days up to freeze date (Oct 14)
   const finalTotalSessions = totalSessions + futureTotalSessions;
   const maximumFinalAttended = attendedSessions + futureMaximumAttended;
   const maximumPossibleAttendance = finalTotalSessions > 0
@@ -492,7 +490,7 @@ function renderCalendarGrid() {
 
   const months = [
     { name: 'September 2026', monthNum: 9, startDay: 21, endDay: 30, year: 2026 },
-    { name: 'October 2026', monthNum: 10, startDay: 1, endDay: 16, year: 2026 }
+    { name: 'October 2026', monthNum: 10, startDay: 1, endDay: 14, year: 2026 }
   ];
 
   months.forEach(m => {

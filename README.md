@@ -1,13 +1,13 @@
 # NIAT x CDU Attendance Calculator
 
-A fast, client-side, mobile-first web application designed for university students to calculate and project their attendance leading up to the **October 16th, 2026** attendance freeze.
+A fast, client-side, mobile-first web application designed for university students to calculate and project their attendance leading up to the **October 14th, 2026** attendance freeze.
 
 ## Key Highlights & Schedule
 
-- **Freeze Date**: October 16th, 2026 EOD
+- **Freeze Date**: October 14th, 2026 EOD
 - **Baseline Reference**: September 20th, 2026
 - **Sessions Per Working Day**: 7 sessions (calculated on average; actual sessions vary per hall)
-- **Planned Leaves Calculator**: Interactive calendar picker allowing students to select planned absent days up to October 16th and project their adjusted attendance accordingly.
+- **Planned Leaves Calculator**: Interactive calendar picker allowing students to select planned absent days up to October 14th and project their adjusted attendance accordingly.
 - **Target Benchmark**: 60.00% minimum attendance
 - **Dynamic Real-Time Session Engine**: Automatically decrements remaining sessions in real time in the background as each college period concludes (8:30 AM to 4:00 PM).
 
@@ -25,7 +25,7 @@ A fast, client-side, mobile-first web application designed for university studen
 
 ---
 
-### Schedule Calendar (Sep 21 – Oct 16, 2026)
+### Schedule Calendar (Sep 21 – Oct 14, 2026)
 
 | Date | Day | Type | Conducted Sessions |
 | :--- | :--- | :--- | :---: |
@@ -52,9 +52,7 @@ A fast, client-side, mobile-first web application designed for university studen
 | **Oct 11** | Sun | **Sunday Holiday** | 0 |
 | **Oct 12** | Mon | Normal Class | 7 |
 | **Oct 13** | Tue | Normal Class | 7 |
-| **Oct 14** | Wed | Normal Class | 7 |
-| **Oct 15** | Thu | Normal Class | 7 |
-| **Oct 16** | Fri | **Freeze Date** | 7 |
+| **Oct 14** | Wed | **Freeze Date** | 7 |
 
 ---
 
